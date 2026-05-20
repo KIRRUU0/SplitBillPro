@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  @apply bg-slate-900 text-slate-100 min-h-screen antialiased;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Print Styles */
+@media print {
+  /* Sembunyikan elemen no-print */
+  .no-print, 
+  header, 
+  aside,
+  button,
+  .no-print * {
+    display: none !important;
+  }
+
+  /* Reset background & warna text untuk cetak */
+  body, html, #root, main {
+    background: white !important;
+    color: black !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Reset grid layout ke block vertikal */
+  main, .grid, .grid-cols-1, .grid-cols-2, .grid-cols-3, .grid-cols-4 {
+    display: block !important;
+  }
+
+  /* Styling box dan panel transparansi untuk kertas putih */
+  .bg-slate-800\/50, 
+  .bg-slate-900\/40, 
+  .bg-slate-900\/60, 
+  .bg-slate-900\/50, 
+  .bg-slate-900\/20, 
+  .bg-slate-950\/30,
+  .bg-slate-900\/25 {
+    background: #f8fafc !important; /* slate-50 */
+    border: 1px solid #cbd5e1 !important; /* slate-300 */
+    color: black !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Reset warna teks */
+  h1, h2, h3, h4, h5, h6, 
+  span, p, div, table, tr, td, th, strong {
+    color: black !important;
+  }
+
+  /* Pastikan border terlihat */
+  .border, .border-b, .border-t, .divide-y > * {
+    border-color: #cbd5e1 !important; /* slate-300 */
+  }
+
+  /* Selalu tampilkan detail barang per anggota saat cetak */
+  .print-force-show {
+    display: block !important;
+  }
+
+  /* Hindari pemotongan halaman di tengah baris data */
+  tr, .border {
+    page-break-inside: avoid;
+  }
+}
