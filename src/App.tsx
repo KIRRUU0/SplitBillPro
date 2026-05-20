@@ -9,7 +9,8 @@ import {
   FolderOpen, 
   AlertTriangle,
   CheckCircle,
-  FileText
+  FileText,
+  CalendarDays
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import type { Member, BillItem, Bill } from './types';
@@ -38,6 +39,7 @@ function App() {
   // States Utama Tagihan Aktif
   const [billId, setBillId] = useState<string>('');
   const [billTitle, setBillTitle] = useState<string>('Tagihan Baru');
+  const [billDate, setBillDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [taxInputType, setTaxInputType] = useState<'nominal' | 'percentage'>('nominal');
   const [taxInputValue, setTaxInputValue] = useState<number>(0);
   const [totalTax, setTotalTax] = useState<number>(0);
@@ -91,6 +93,7 @@ function App() {
     const newId = generateUUID();
     setBillId(newId);
     setBillTitle('Tagihan Baru');
+    setBillDate(new Date().toISOString().split('T')[0]);
     setTaxInputValue(0);
     setTotalTax(0);
     setMembers([]);
@@ -167,6 +170,7 @@ function App() {
         // Set States
         setBillId(id);
         setBillTitle(billMeta.title);
+        setBillDate(billMeta.bill_date || new Date().toISOString().split('T')[0]);
         setTaxInputType('nominal');
         setTaxInputValue(Number(billMeta.total_tax));
         setTotalTax(Number(billMeta.total_tax));
@@ -186,6 +190,7 @@ function App() {
           const details = JSON.parse(detailsLocal);
           setBillId(id);
           setBillTitle(billMeta.title);
+          setBillDate(billMeta.bill_date || new Date().toISOString().split('T')[0]);
           setTaxInputType('nominal');
           setTaxInputValue(billMeta.total_tax);
           setTotalTax(billMeta.total_tax);
@@ -225,7 +230,8 @@ function App() {
             id: billId,
             title: billTitle,
             total_amount: grandTotal,
-            total_tax: totalTax
+            total_tax: totalTax,
+            bill_date: billDate
           });
 
         if (billError) throw billError;
@@ -278,6 +284,7 @@ function App() {
         title: billTitle,
         total_amount: grandTotal,
         total_tax: totalTax,
+        bill_date: billDate,
         created_at: new Date().toISOString()
       };
 
@@ -483,9 +490,14 @@ function App() {
                 >
                   <div className="min-w-0 flex-grow pr-2">
                     <h3 className="font-semibold text-xs truncate">{b.title}</h3>
-                    <p className="text-[10px] text-slate-500 mt-1">
-                      {formatRupiah(b.total_amount)}
-                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-[10px] text-slate-500">
+                        {formatRupiah(b.total_amount)}
+                      </p>
+                      {b.bill_date && (
+                        <span className="text-[9px] text-slate-600">• {new Date(b.bill_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                      )}
+                    </div>
                   </div>
                   
                   <button
@@ -518,8 +530,8 @@ function App() {
           {/* Header Konfigurasi Bill Aktif */}
           <div className="no-print bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 space-y-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              {/* Judul Tagihan */}
-              <div className="flex-grow">
+              {/* Judul & Tanggal Tagihan */}
+              <div className="flex-grow space-y-2">
                 <input 
                   type="text" 
                   value={billTitle}
@@ -527,6 +539,15 @@ function App() {
                   placeholder="Masukkan Judul Tagihan (cth: Makan Malam Ultah)"
                   className="bg-transparent border-b border-transparent hover:border-slate-800 focus:border-indigo-500 text-lg md:text-xl font-bold text-slate-100 placeholder-slate-600 focus:outline-none py-1 w-full transition-all"
                 />
+                <div className="flex items-center gap-2">
+                  <CalendarDays size={14} className="text-slate-500" />
+                  <input
+                    type="date"
+                    value={billDate}
+                    onChange={(e) => setBillDate(e.target.value)}
+                    className="bg-transparent border-b border-transparent hover:border-slate-800 focus:border-indigo-500 text-xs text-slate-400 focus:text-slate-200 focus:outline-none py-0.5 transition-all cursor-pointer [color-scheme:dark]"
+                  />
+                </div>
               </div>
 
               {/* Tombol Simpan */}

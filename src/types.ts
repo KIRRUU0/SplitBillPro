@@ -18,5 +18,6 @@ export interface Bill {
   title: string;
   total_amount: number;
   total_tax: number;
+  bill_date?: string;
   created_at?: string;
 }
