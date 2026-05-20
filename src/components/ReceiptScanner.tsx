@@ -132,19 +132,50 @@ export const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onItemsScanned }
 
         const price = parseFloat(priceStr);
 
-        // Validasi agar nama item tidak terlalu pendek dan harga masuk akal (> 100 rupiah)
+        // Validasi agar harga masuk akal (> 100 rupiah)
         if (!isNaN(price) && price > 100) {
           if (isTaxLine && !isTotalLine) {
             // Ini baris Pajak/PB1/PPN, simpan sebagai pajak dan jangan dimasukkan ke daftar belanja
             extractedTax = price;
           } else if (!isTotalLine) {
-            // Ini baris belanjaan biasa
-            if (name.length > 2) {
-              items.push({
-                id: Math.random().toString(36).substr(2, 9),
-                item_name: name,
-                price: price
-              });
+            let cleanName = name;
+            let qty = 1;
+
+            // Coba deteksi pola kuantitas di awal (contoh: "2x Mie Gacoan" atau "2 x Mie Gacoan")
+            const startQtyMatch = name.match(/^(\d+)\s*x\s+(.+)$/i);
+            // Coba deteksi pola kuantitas di akhir (contoh: "Mie Gacoan 2x" atau "Mie Gacoan 2 x")
+            const endQtyMatch = name.match(/^(.+?)\s+(\d+)\s*x$/i);
+            // Coba deteksi kuantitas tanpa 'x' di awal (contoh: "2 Mie Gacoan")
+            const startNoXQtyMatch = name.match(/^(\d{1,2})\s+(.+)$/);
+
+            if (startQtyMatch) {
+              qty = parseInt(startQtyMatch[1], 10);
+              cleanName = startQtyMatch[2].trim();
+            } else if (endQtyMatch) {
+              qty = parseInt(endQtyMatch[2], 10);
+              cleanName = endQtyMatch[1].trim();
+            } else if (startNoXQtyMatch) {
+              qty = parseInt(startNoXQtyMatch[1], 10);
+              cleanName = startNoXQtyMatch[2].trim();
+            }
+
+            if (qty > 1) {
+              const unitPrice = Math.round(price / qty);
+              for (let i = 1; i <= qty; i++) {
+                items.push({
+                  id: Math.random().toString(36).substr(2, 9),
+                  item_name: `${cleanName} (${i}/${qty})`,
+                  price: unitPrice
+                });
+              }
+            } else {
+              if (cleanName.length > 2) {
+                items.push({
+                  id: Math.random().toString(36).substr(2, 9),
+                  item_name: cleanName,
+                  price: price
+                });
+              }
             }
           }
         }
