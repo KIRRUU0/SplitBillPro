@@ -8,7 +8,7 @@ interface ItemManagerProps {
   members: Member[];
   onAddItem: (name: string, price: number) => void;
   onRemoveItem: (id: string) => void;
-  onAssignItem: (itemId: string, memberId: string | null) => void;
+  onAssignItem: (itemId: string, memberIds: string[]) => void;
 }
 
 export const ItemManager: React.FC<ItemManagerProps> = ({
@@ -47,7 +47,7 @@ export const ItemManager: React.FC<ItemManagerProps> = ({
   const totalItemsPrice = items.reduce((acc, curr) => acc + curr.price, 0);
   
   // Hitung item yang belum dialokasikan
-  const unassignedCount = items.filter(item => item.assigned_to_member_id === null).length;
+  const unassignedCount = items.filter(item => !item.assigned_to_member_ids || item.assigned_to_member_ids.length === 0).length;
 
   return (
     <div className="no-print bg-slate-800/50 backdrop-blur-md rounded-2xl p-6 border border-slate-700/60 shadow-xl">
@@ -143,18 +143,31 @@ export const ItemManager: React.FC<ItemManagerProps> = ({
                   <td className="py-2.5 px-4 font-semibold text-slate-300">{formatRupiah(item.price)}</td>
                   <td className="py-2.5 px-4">
                     <select
-                      value={item.assigned_to_member_id || ''}
-                      onChange={(e) => onAssignItem(item.id, e.target.value || null)}
+                      multiple
+                      value={item.assigned_to_member_ids || []}
+                      onChange={(e) => {
+                        const selected = Array.from(e.target.selectedOptions).map((option) => option.value);
+                        onAssignItem(item.id, selected);
+                      }}
                       disabled={members.length === 0}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg py-1.5 px-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full min-h-[3rem] bg-slate-800 border border-slate-700 rounded-lg py-1.5 px-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <option value="">-- Belum Dialokasikan --</option>
-                      {members.map(member => (
-                        <option key={member.id} value={member.id}>
-                          {member.name}
-                        </option>
-                      ))}
+                      {members.length === 0 ? (
+                        <option value="">-- Tambah anggota dulu --</option>
+                      ) : (
+                        members.map(member => (
+                          <option key={member.id} value={member.id}>
+                            {member.name}
+                          </option>
+                        ))
+                      )}
                     </select>
+                    <p className="mt-1 text-[10px] text-slate-500">Gunakan Ctrl/Cmd atau Shift untuk memilih lebih dari satu.</p>
+                    {item.assigned_to_member_ids && item.assigned_to_member_ids.length > 0 && (
+                      <p className="mt-1 text-[10px] text-slate-400">
+                        Dialokasikan ke: {members.filter((member) => item.assigned_to_member_ids.includes(member.id)).map((member) => member.name).join(', ')}
+                      </p>
+                    )}
                   </td>
                   <td className="py-2.5 px-4 text-center">
                     <button

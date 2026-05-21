@@ -30,12 +30,15 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
 
   // Hitung total pembelanjaan untuk masing-masing anggota
   const getMemberItems = (memberId: string) => {
-    return items.filter(item => item.assigned_to_member_id === memberId);
+    return items.filter(item => item.assigned_to_member_ids?.includes(memberId));
   };
 
   const getMemberItemsTotal = (memberId: string) => {
     const memberItems = getMemberItems(memberId);
-    return memberItems.reduce((acc, curr) => acc + curr.price, 0);
+    return memberItems.reduce((acc, curr) => {
+      const shareCount = curr.assigned_to_member_ids?.length || 1;
+      return acc + curr.price / shareCount;
+    }, 0);
   };
 
   // Hitung total dari seluruh item belanjaan
@@ -181,13 +184,23 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
                         <p className="text-xs text-slate-500 italic py-1">Belum ada item belanjaan yang dialokasikan.</p>
                       ) : (
                         <div className="space-y-2.5">
-                          {memberItems.map(item => (
-                            <div key={item.id} className="flex justify-between items-center text-xs text-slate-300 py-0.5">
-                              <span className="text-slate-400 font-medium">{item.item_name}</span>
-                              <div className="flex-grow border-b border-dashed border-slate-800/80 mx-3" />
-                              <span className="font-semibold text-slate-200">{formatRupiah(item.price)}</span>
-                            </div>
-                          ))}
+                          {memberItems.map(item => {
+                            const shareCount = item.assigned_to_member_ids?.length || 1;
+                            const itemShare = item.price / shareCount;
+                            return (
+                              <div key={item.id} className="flex justify-between items-center text-xs text-slate-300 py-0.5">
+                                <div className="space-y-0.5">
+                                  <span className="text-slate-400 font-medium">{item.item_name}</span>
+                                  {shareCount > 1 && (
+                                    <span className="text-[10px] text-slate-500">Dibagi {shareCount} orang • {formatRupiah(itemShare)} per orang</span>
+                                  )}
+                                </div>
+                                <div className="text-right">
+                                  <span className="font-semibold text-slate-200">{formatRupiah(itemShare)}</span>
+                                </div>
+                              </div>
+                            );
+                          })}
                           <div className="flex justify-between items-center text-xs font-bold text-slate-200 border-t border-slate-800/50 pt-2.5 mt-2">
                             <span>Subtotal Item</span>
                             <span>{formatRupiah(itemsTotal)}</span>

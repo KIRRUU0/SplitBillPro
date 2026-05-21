@@ -51,10 +51,12 @@ function App() {
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
+  const [showTutorial, setShowTutorial] = useState<boolean>(false);
   const importFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const LOCAL_STORAGE_BILLS_KEY = 'splitbill_pro_bills';
   const LOCAL_STORAGE_DETAILS_PREFIX = 'splitbill_pro_details_';
+  const LOCAL_STORAGE_TUTORIAL_KEY = 'splitbill_pro_seen_tutorial';
 
   useEffect(() => {
     // Inisialisasi tagihan baru saat start
@@ -62,6 +64,12 @@ function App() {
     
     // Load daftar tagihan tersimpan dari localStorage
     loadSavedBills();
+
+    // Tampilkan tutorial popup sekali saja
+    const seenTutorial = localStorage.getItem(LOCAL_STORAGE_TUTORIAL_KEY) === 'true';
+    if (!seenTutorial) {
+      setShowTutorial(true);
+    }
   }, []);
 
   // Update totalTax jika taxInputValue atau item price berubah
@@ -85,6 +93,15 @@ function App() {
 
   const showToast = (message: string, type: 'success' | 'error' | 'warning') => {
     setToast({ message, type });
+  };
+
+  const handleCloseTutorial = () => {
+    localStorage.setItem(LOCAL_STORAGE_TUTORIAL_KEY, 'true');
+    setShowTutorial(false);
+  };
+
+  const handleOpenTutorial = () => {
+    setShowTutorial(true);
   };
 
   const downloadJSON = (filename: string, data: unknown) => {
@@ -293,6 +310,17 @@ function App() {
     if (detailsLocal) {
       try {
         const details = JSON.parse(detailsLocal);
+        const normalizedItems: BillItem[] = Array.isArray(details.items)
+          ? details.items.map((item: any) => ({
+              ...item,
+              assigned_to_member_ids: Array.isArray(item.assigned_to_member_ids)
+                ? item.assigned_to_member_ids
+                : item.assigned_to_member_id
+                ? [item.assigned_to_member_id]
+                : []
+            }))
+          : [];
+
         setBillId(id);
         setBillTitle(billMeta.title);
         setBillDate(billMeta.bill_date || new Date().toISOString().split('T')[0]);
@@ -300,7 +328,7 @@ function App() {
         setTaxInputValue(billMeta.total_tax);
         setTotalTax(billMeta.total_tax);
         setMembers(details.members || []);
-        setItems(details.items || []);
+        setItems(normalizedItems);
         setSelectedBillId(id);
         showToast(`Tagihan "${billMeta.title}" dimuat dari penyimpanan lokal.`, 'success');
       } catch (e) {
@@ -379,11 +407,10 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
   const handleRemoveMember = (id: string) => {
     setMembers(prev => prev.filter(m => m.id !== id));
     // Reset alokasi item jika member ini dihapus
-    setItems(prev => prev.map(item => 
-      item.assigned_to_member_id === id 
-        ? { ...item, assigned_to_member_id: null } 
-        : item
-    ));
+    setItems(prev => prev.map(item => ({
+      ...item,
+      assigned_to_member_ids: item.assigned_to_member_ids.filter((memberId) => memberId !== id)
+    })));
   };
 
   // State Mutators: Items
@@ -393,7 +420,7 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
       bill_id: billId,
       item_name: name,
       price,
-      assigned_to_member_id: null
+      assigned_to_member_ids: []
     };
     setItems(prev => [...prev, newItem]);
   };
@@ -402,10 +429,10 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
     setItems(prev => prev.filter(item => item.id !== id));
   };
 
-  const handleAssignItem = (itemId: string, memberId: string | null) => {
+  const handleAssignItem = (itemId: string, memberIds: string[]) => {
     setItems(prev => prev.map(item => 
       item.id === itemId 
-        ? { ...item, assigned_to_member_id: memberId } 
+        ? { ...item, assigned_to_member_ids: memberIds } 
         : item
     ));
   };
@@ -417,7 +444,7 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
       bill_id: billId,
       item_name: item.item_name,
       price: item.price,
-      assigned_to_member_id: null
+      assigned_to_member_ids: []
     }));
     setItems(prev => [...prev, ...newItems]);
     
@@ -471,6 +498,14 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
           </div>
 
           <button 
+            onClick={handleOpenTutorial}
+            className="px-3 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition-all"
+            title="Tunjukkan Tutorial"
+          >
+            Tutorial
+          </button>
+
+          <button 
             onClick={initNewBill}
             className="p-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white rounded-xl transition-all"
             title="Buat Tagihan Baru"
@@ -488,8 +523,17 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
               <p className="text-xs uppercase tracking-[0.24em] text-slate-500 font-semibold">Panduan Cepat</p>
               <h2 className="mt-2 text-lg sm:text-xl font-bold text-slate-100">Cara menggunakan SplitBill Pro</h2>
             </div>
-            <div className="rounded-2xl bg-slate-950/40 border border-slate-800 px-4 py-3 text-xs text-slate-400">
-              Isi langkahnya secara berurutan agar hasil pembagian lebih jelas.
+            <div className="flex flex-wrap gap-2 items-center">
+              <div className="rounded-2xl bg-slate-950/40 border border-slate-800 px-4 py-3 text-xs text-slate-400">
+                Isi langkahnya secara berurutan agar hasil pembagian lebih jelas.
+              </div>
+              <button
+                onClick={handleOpenTutorial}
+                className="px-4 py-2 rounded-2xl bg-indigo-500 text-white text-xs font-semibold hover:bg-indigo-600 transition-all"
+                type="button"
+              >
+                Lihat Tutorial Lagi
+              </button>
             </div>
           </div>
 
@@ -786,6 +830,54 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
         </section>
 
       </main>
+
+      {showTutorial && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 p-4">
+          <div className="w-full max-w-3xl rounded-3xl bg-slate-900 border border-slate-700 shadow-2xl p-8 text-slate-100">
+            <div className="flex items-start justify-between gap-4 mb-6">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-indigo-400 font-semibold">Tutorial SplitBill Pro</p>
+                <h2 className="mt-3 text-2xl font-bold text-white">Cara cepat menggunakan aplikasi</h2>
+              </div>
+              <button
+                onClick={handleCloseTutorial}
+                className="rounded-full p-2 bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition-all"
+                aria-label="Tutup tutorial"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-5 text-sm leading-6 text-slate-300">
+              <div className="rounded-2xl bg-slate-950/80 border border-slate-800 p-4">
+                <h3 className="font-semibold text-slate-100">Langkah 1: Tambah Anggota</h3>
+                <p>Masukkan nama semua orang yang akan ikut membayar tagihan.</p>
+              </div>
+              <div className="rounded-2xl bg-slate-950/80 border border-slate-800 p-4">
+                <h3 className="font-semibold text-slate-100">Langkah 2: Tambah Item</h3>
+                <p>Tambahkan barang belanja. Untuk satu barang yang dibagi, pilih lebih dari satu anggota.</p>
+              </div>
+              <div className="rounded-2xl bg-slate-950/80 border border-slate-800 p-4">
+                <h3 className="font-semibold text-slate-100">Langkah 3: Atur Pajak</h3>
+                <p>Masukkan nilai pajak atau service charge, lalu pajak akan otomatis dibagi rata ke setiap anggota.</p>
+              </div>
+              <div className="rounded-2xl bg-slate-950/80 border border-slate-800 p-4">
+                <h3 className="font-semibold text-slate-100">Langkah 4: Simpan atau Ekspor</h3>
+                <p>Simpan tagihan di browser ini atau ekspor ke file JSON untuk backup dan pemulihan.</p>
+              </div>
+            </div>
+
+            <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:justify-end">
+              <button
+                onClick={handleCloseTutorial}
+                className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-indigo-500 text-white font-semibold hover:bg-indigo-600 transition-all"
+              >
+                Saya sudah mengerti
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modern Footer */}
       <footer className="mt-auto py-6 border-t border-slate-900 bg-slate-950 text-center text-xs text-slate-500">

@@ -10,7 +10,7 @@ export interface BillItem {
   bill_id?: string;
   item_name: string;
   price: number;
-  assigned_to_member_id: string | null; // ID dari Member, null jika belum dialokasikan
+  assigned_to_member_ids: string[]; // ID dari member yang membagi item ini
 }
 
 export interface Bill {
