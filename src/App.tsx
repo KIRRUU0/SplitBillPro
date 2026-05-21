@@ -17,7 +17,7 @@ import type { Member, BillItem, Bill } from './types';
 import { MemberManager } from './components/MemberManager';
 import { ItemManager } from './components/ItemManager';
 import { ReceiptScanner } from './components/ReceiptScanner';
-import { PaymentSummary } from './components/PaymentSummary';
+import PaymentSummary from './components/PaymentSummary';
 import { formatRupiah, calculateTaxShare, formatInputRupiah, parseRupiahToNumber } from './utils/mathUtils';
 
 // Helper UUID Generator aman
@@ -44,7 +44,6 @@ function App() {
   const [items, setItems] = useState<BillItem[]>([]);
   // Payment routing state
   const [payerId, setPayerId] = useState<string>('');
-  const [payeeId, setPayeeId] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<string>('');
 
   // States Management Data & UI
@@ -210,6 +209,8 @@ function App() {
         setTotalTax(billMeta.total_tax);
         setMembers(details.members || []);
         setItems(normalizedItems);
+        setPayerId(details.payerId || billMeta.payer_id || '');
+        setPaymentMethod(details.paymentMethod || billMeta.payment_method || '');
         setSelectedBillId(id);
         showToast(`Tagihan "${billMeta.title}" dimuat dari penyimpanan lokal.`, 'success');
       } catch (e) {
@@ -241,15 +242,17 @@ function App() {
       total_amount: grandTotal,
       total_tax: totalTax,
       bill_date: billDate,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      payer_id: payerId || undefined,
+      payment_method: paymentMethod || undefined
     };
 
     const updatedBills = [...savedBills.filter(b => b.id !== billId), newBillMeta];
 localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
       localStorage.setItem(
-        `${LOCAL_STORAGE_DETAILS_PREFIX}${billId}`, 
-      JSON.stringify({ members, items })
-    );
+        `${LOCAL_STORAGE_DETAILS_PREFIX}${billId}`,
+        JSON.stringify({ members, items, payerId, paymentMethod })
+      );
 
     setSavedBills(updatedBills);
     setSelectedBillId(billId);
@@ -558,8 +561,8 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
               </div>
             </div>
 
-            {/* Payment Routing: Who pays, to whom, method */}
-            <div className="no-print grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+            {/* Payment Routing: Who pays and method */}
+            <div className="no-print grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
               <div>
                 <label className="text-xs text-slate-400">Siapa yang Membayar</label>
                 <select
@@ -568,20 +571,6 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
                   className="w-full mt-1 bg-slate-950/40 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100"
                 >
                   <option value="">Pilih Pembayar</option>
-                  {members.map(m => (
-                    <option key={m.id} value={m.id}>{m.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs text-slate-400">Bayar Kepada</label>
-                <select
-                  value={payeeId}
-                  onChange={(e) => setPayeeId(e.target.value)}
-                  className="w-full mt-1 bg-slate-950/40 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100"
-                >
-                  <option value="">Pilih Penerima Pembayaran</option>
                   {members.map(m => (
                     <option key={m.id} value={m.id}>{m.name}</option>
                   ))}
@@ -705,17 +694,28 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
                 onAssignItem={handleAssignItem}
               />
 
-              <div className="print-only">
+              <div>
                 <PaymentSummary 
                   members={members}
                   items={items}
                   totalTax={totalTax}
                   billTitle={billTitle}
                   payerId={payerId}
-                  payeeId={payeeId}
                   paymentMethod={paymentMethod}
-                  printMode={true}
+                  printMode={false}
                 />
+
+                <div className="hidden print:block print-only">
+                  <PaymentSummary 
+                    members={members}
+                    items={items}
+                    totalTax={totalTax}
+                    billTitle={billTitle}
+                    payerId={payerId}
+                    paymentMethod={paymentMethod}
+                    printMode={true}
+                  />
+                </div>
               </div>
             </div>
 
@@ -799,7 +799,6 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
           totalTax={totalTax}
           billTitle={billTitle}
           payerId={payerId}
-          payeeId={payeeId}
           paymentMethod={paymentMethod}
           printMode={true}
         />

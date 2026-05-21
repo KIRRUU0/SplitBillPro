@@ -9,9 +9,8 @@ interface PaymentSummaryProps {
   totalTax: number;
   billTitle: string;
   payerId?: string;
-  payeeId?: string;
   paymentMethod?: string;
-  printMode?: boolean; // when true show compact print output
+  printMode?: boolean; // when true show compact print output with breakdown
 }
 
 export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
@@ -20,23 +19,17 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
   totalTax,
   billTitle,
   payerId,
-  payeeId,
   paymentMethod,
   printMode = false
 }) => {
   const [expandedMembers, setExpandedMembers] = useState<Record<string, boolean>>({});
 
   const toggleExpand = (id: string) => {
-    setExpandedMembers(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
+    setExpandedMembers(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Nilai Pajak Per Orang = Total Pajak / Jumlah Orang
   const taxShare = calculateTaxShare(totalTax, members.length);
 
-  // Hitung total pembelanjaan untuk masing-masing anggota
   const getMemberItems = (memberId: string) => {
     return items.filter(item => item.assigned_to_member_ids?.includes(memberId));
   };
@@ -49,14 +42,10 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
     }, 0);
   };
 
-  // Hitung total dari seluruh item belanjaan
   const totalItemsPrice = items.reduce((acc, curr) => acc + curr.price, 0);
-  // Total Keseluruhan Tagihan = Subtotal Item + Pajak Global
   const grandTotalBill = totalItemsPrice + totalTax;
   const payer = members.find(m => m.id === payerId);
-  const payee = members.find(m => m.id === payeeId);
 
-  // If printMode is enabled, render a compact print sheet without per-person breakdown
   if (printMode) {
     return (
       <div className="bg-white text-black p-6 rounded-none w-full">
@@ -77,17 +66,60 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
           </div>
 
           <div className="flex justify-between">
-            <span className="text-slate-700">Bayar Kepada</span>
-            <span>{payee ? payee.name : '-'}</span>
-          </div>
-
-          <div className="flex justify-between">
             <span className="text-slate-700">Metode</span>
             <span>{paymentMethod || '-'}</span>
           </div>
         </div>
 
-        <div className="mt-8 text-center text-xs text-slate-500">-- Hanya ringkasan pembayaran --</div>
+        {/* Rincian Pembagian per Anggota untuk Cetak */}
+        <div className="mt-6">
+          <h3 className="text-sm font-semibold mb-3">Rincian Pembagian</h3>
+          <div className="space-y-3 text-sm">
+            {members.map(member => {
+              const memberItems = getMemberItems(member.id);
+              const itemsTotal = getMemberItemsTotal(member.id);
+              const memberGrandTotal = calculateMemberTotal(itemsTotal, taxShare);
+
+              return (
+                <div key={member.id} className="border-b pb-2">
+                  <div className="flex justify-between mb-1 font-semibold">
+                    <span>{member.name}</span>
+                    <span>{formatRupiah(memberGrandTotal)}</span>
+                  </div>
+
+                  {memberItems.length === 0 ? (
+                    <div className="text-xs italic text-slate-600">Tidak ada item</div>
+                  ) : (
+                    <table className="w-full text-xs">
+                      <tbody>
+                        {memberItems.map(item => {
+                          const shareCount = item.assigned_to_member_ids?.length || 1;
+                          const itemShare = item.price / shareCount;
+                          return (
+                            <tr key={item.id} className="align-top">
+                              <td className="pr-2" style={{ width: '70%' }}>{item.item_name}{shareCount > 1 ? ` (dibagi ${shareCount})` : ''}</td>
+                              <td className="text-right">{formatRupiah(itemShare)}</td>
+                            </tr>
+                          );
+                        })}
+                        <tr className="font-semibold border-t pt-2">
+                          <td className="pt-2">Subtotal</td>
+                          <td className="text-right pt-2">{formatRupiah(itemsTotal)}</td>
+                        </tr>
+                        <tr>
+                          <td>Pajak Share</td>
+                          <td className="text-right">{formatRupiah(taxShare)}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="mt-6 text-center text-xs text-slate-500">-- Akhir rincian cetak --</div>
       </div>
     );
   }
@@ -100,6 +132,7 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
         <p className="text-md font-bold text-slate-600 mt-1">{billTitle || 'Rincian Tagihan Belanja'}</p>
         <p className="text-[10px] text-slate-400 mt-1">Dicetak pada: {new Date().toLocaleString('id-ID')}</p>
       </div>
+
       {/* Header Ringkasan */}
       <div className="flex justify-between items-center pb-2 border-b border-slate-700/50">
         <div className="flex items-center space-x-3">
@@ -111,7 +144,7 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
             <p className="text-xs text-slate-400">Rincian biaya per orang yang harus dibayarkan</p>
           </div>
         </div>
-        
+
         <button
           onClick={() => window.print()}
           disabled={members.length === 0}
@@ -133,16 +166,12 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
         <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-800/80 hover:border-slate-700/60 transition-colors flex flex-col justify-between">
           <div className="flex justify-between items-center">
             <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Pajak / Service</span>
-            <span className="text-[9px] bg-indigo-500/10 text-indigo-400 font-semibold px-2 py-0.5 rounded border border-indigo-900/30">
-              Bagi Rata
-            </span>
+            <span className="text-[9px] bg-indigo-500/10 text-indigo-400 font-semibold px-2 py-0.5 rounded border border-indigo-900/30">Bagi Rata</span>
           </div>
           <div className="mt-2">
             <p className="text-lg font-bold text-indigo-450 text-indigo-400">{formatRupiah(totalTax)}</p>
             {members.length > 0 && (
-              <p className="text-[10px] text-slate-400 mt-0.5">
-                ({formatRupiah(taxShare)} / orang)
-              </p>
+              <p className="text-[10px] text-slate-400 mt-0.5">({formatRupiah(taxShare)} / orang)</p>
             )}
           </div>
         </div>
@@ -160,11 +189,9 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
       {/* Breakdown per Orang */}
       <div className="space-y-4">
         <h4 className="font-semibold text-xs text-slate-450 uppercase tracking-wider">Rincian Per Anggota</h4>
-        
+
         {members.length === 0 ? (
-          <div className="p-8 border border-dashed border-slate-800 rounded-2xl text-center text-slate-500 text-xs">
-            Tidak ada anggota untuk ditampilkan. Tambahkan anggota di panel sebelah kiri.
-          </div>
+          <div className="p-8 border border-dashed border-slate-800 rounded-2xl text-center text-slate-500 text-xs">Tidak ada anggota untuk ditampilkan. Tambahkan anggota di panel sebelah kiri.</div>
         ) : (
           <div className="space-y-3">
             {members.map(member => {
@@ -174,56 +201,30 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
               const isExpanded = !!expandedMembers[member.id];
 
               return (
-                <div 
-                  key={member.id}
-                  className={`border rounded-xl transition-all duration-200 overflow-hidden ${
-                    isExpanded 
-                      ? 'border-indigo-500/30 bg-slate-900/30 shadow-md shadow-indigo-950/20' 
-                      : 'border-slate-800/80 bg-slate-900/10 hover:bg-slate-900/25 hover:border-slate-700/50'
-                  }`}
-                >
-                  {/* Summary Bar */}
-                  <div 
-                    onClick={() => toggleExpand(member.id)}
-                    className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer select-none transition-colors"
-                  >
+                <div key={member.id} className={`border rounded-xl transition-all duration-200 overflow-hidden ${isExpanded ? 'border-indigo-500/30 bg-slate-900/30 shadow-md shadow-indigo-950/20' : 'border-slate-800/80 bg-slate-900/10 hover:bg-slate-900/25 hover:border-slate-700/50'}`}>
+                  <div onClick={() => toggleExpand(member.id)} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer select-none transition-colors">
                     <div className="flex items-center space-x-3.5">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center text-white text-sm font-extrabold uppercase shadow-md">
-                        {member.name.substring(0, 2)}
-                      </div>
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center text-white text-sm font-extrabold uppercase shadow-md">{member.name.substring(0, 2)}</div>
                       <div>
                         <h5 className="font-bold text-sm text-slate-200">{member.name}</h5>
-                        <p className="text-[10px] text-slate-450 mt-0.5 text-slate-400">
-                          {memberItems.length} barang belanjaan
-                        </p>
+                        <p className="text-[10px] text-slate-450 mt-0.5 text-slate-400">{memberItems.length} barang belanjaan</p>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between sm:justify-end gap-5">
                       <div className="text-right space-y-1">
                         <div className="flex flex-wrap items-center gap-1.5 justify-end">
-                          <span className="text-[9px] bg-slate-950 px-1.5 py-0.5 rounded text-slate-400 border border-slate-900 font-medium">
-                            Item: {formatRupiah(itemsTotal)}
-                          </span>
+                          <span className="text-[9px] bg-slate-950 px-1.5 py-0.5 rounded text-slate-400 border border-slate-900 font-medium">Item: {formatRupiah(itemsTotal)}</span>
                           <span className="text-[9px] text-slate-500 font-bold">+</span>
-                          <span className="text-[9px] bg-indigo-950/50 text-indigo-400 px-1.5 py-0.5 rounded border border-indigo-900/40 font-medium">
-                            Pajak: {formatRupiah(taxShare)}
-                          </span>
+                          <span className="text-[9px] bg-indigo-950/50 text-indigo-400 px-1.5 py-0.5 rounded border border-indigo-900/40 font-medium">Pajak: {formatRupiah(taxShare)}</span>
                         </div>
-                        <p className="text-sm font-extrabold text-slate-100">
-                          {formatRupiah(memberGrandTotal)}
-                        </p>
+                        <p className="text-sm font-extrabold text-slate-100">{formatRupiah(memberGrandTotal)}</p>
                       </div>
-                      
-                      <div className="text-slate-500 p-1 hover:text-slate-350 rounded-lg hover:bg-slate-800/40">
-                        {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                      </div>
+                      <div className="text-slate-500 p-1 hover:text-slate-350 rounded-lg hover:bg-slate-800/40">{isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</div>
                     </div>
                   </div>
 
-                  {/* Expanded Details (Receipt Style) */}
                   <div className={`border-t border-slate-800/60 bg-slate-950/30 p-4 space-y-4 ${isExpanded ? 'block' : 'hidden print:block'}`}>
-                    {/* List Item Belanjaan Anggota */}
                     <div>
                       <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-3 block">Daftar Item Belanja</span>
                       {memberItems.length === 0 ? (
@@ -237,13 +238,9 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
                               <div key={item.id} className="flex justify-between items-center text-xs text-slate-300 py-0.5">
                                 <div className="space-y-0.5">
                                   <span className="text-slate-400 font-medium">{item.item_name}</span>
-                                  {shareCount > 1 && (
-                                    <span className="text-[10px] text-slate-500">Dibagi {shareCount} orang • {formatRupiah(itemShare)} per orang</span>
-                                  )}
+                                  {shareCount > 1 && (<span className="text-[10px] text-slate-500">Dibagi {shareCount} orang • {formatRupiah(itemShare)} per orang</span>)}
                                 </div>
-                                <div className="text-right">
-                                  <span className="font-semibold text-slate-200">{formatRupiah(itemShare)}</span>
-                                </div>
+                                <div className="text-right"><span className="font-semibold text-slate-200">{formatRupiah(itemShare)}</span></div>
                               </div>
                             );
                           })}
@@ -255,35 +252,15 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
                       )}
                     </div>
 
-                    {/* Detail Pajak & Rumus */}
                     <div className="pt-3.5 border-t border-slate-800/40 space-y-3">
                       <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">Kalkulasi Pembagian Pajak</span>
-                      
                       <div className="bg-slate-900/60 rounded-xl p-3 border border-slate-800/60 space-y-2">
-                        <div className="flex justify-between text-xs text-slate-400">
-                          <span>Subtotal Belanja</span>
-                          <span className="text-slate-200 font-medium">{formatRupiah(itemsTotal)}</span>
-                        </div>
-                        
-                        <div className="flex justify-between text-xs text-indigo-400">
-                          <span className="flex items-center gap-1.5">
-                            Pajak Share
-                            <span title={`Total Pajak (${formatRupiah(totalTax)}) / ${members.length} Anggota`}>
-                              <Info size={12} className="hover:text-indigo-300 cursor-help" />
-                            </span>
-                          </span>
-                          <span className="font-semibold">{formatRupiah(taxShare)}</span>
-                        </div>
-
+                        <div className="flex justify-between text-xs text-slate-400"><span>Subtotal Belanja</span><span className="text-slate-200 font-medium">{formatRupiah(itemsTotal)}</span></div>
+                        <div className="flex justify-between text-xs text-indigo-400"><span className="flex items-center gap-1.5">Pajak Share <span title={`Total Pajak (${formatRupiah(totalTax)}) / ${members.length} Anggota`}><Info size={12} className="hover:text-indigo-300 cursor-help" /></span></span><span className="font-semibold">{formatRupiah(taxShare)}</span></div>
                         <div className="h-[1px] bg-slate-800/80 my-1" />
-
-                        <div className="flex justify-between text-xs font-bold text-emerald-400">
-                          <span>Total Pembayaran</span>
-                          <span>{formatRupiah(memberGrandTotal)}</span>
-                        </div>
+                        <div className="flex justify-between text-xs font-bold text-emerald-400"><span>Total Pembayaran</span><span>{formatRupiah(memberGrandTotal)}</span></div>
                       </div>
 
-                      {/* Formula Visual Badge */}
                       <div className="text-[10px] font-mono bg-slate-950/80 text-slate-400 py-2.5 px-3.5 rounded-xl border border-slate-900/80 text-center flex flex-wrap items-center justify-center gap-1.5 leading-none">
                         <span className="text-slate-350">{formatRupiah(itemsTotal)}</span>
                         <span className="text-slate-650 text-slate-600">+</span>
@@ -302,3 +279,5 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
     </div>
   );
 };
+
+export default PaymentSummary;

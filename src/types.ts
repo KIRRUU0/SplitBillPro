@@ -20,4 +20,6 @@ export interface Bill {
   total_tax: number;
   bill_date?: string;
   created_at?: string;
+  payer_id?: string;
+  payment_method?: string;
 }
