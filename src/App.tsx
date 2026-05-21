@@ -336,7 +336,7 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500/30 selection:text-indigo-200">
-      
+      <div className="app-ui">
       {/* Toast Notification */}
       {toast && (
         <div className="fixed bottom-5 right-5 z-50 animate-bounce max-w-sm">
@@ -745,6 +745,16 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
       <footer className="mt-auto py-6 border-t border-slate-900 bg-slate-950 text-center text-xs text-slate-500">
         <p>&copy; {new Date().getFullYear()} SplitBill Pro. Dirancang untuk pembagian finansial yang presisi.</p>
       </footer>
+      </div>
+
+      <div className="hidden print:block print-only">
+        <PaymentSummary
+          members={members}
+          items={items}
+          totalTax={totalTax}
+          billTitle={billTitle}
+        />
+      </div>
     </div>
   );
 }

@@ -187,7 +187,7 @@ export const ItemManager: React.FC<ItemManagerProps> = ({
                                 setSelectedMemberToAdd((prev) => ({ ...prev, [item.id]: '' }));
                               }}
                               disabled={members.length === 0 || availableMembers.length === 0}
-                              className="w-full min-w-[180px] bg-slate-800 border border-slate-700 rounded-2xl py-3 px-3 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed"
+                              className="w-full sm:w-[240px] bg-slate-800 border border-slate-700 rounded-2xl py-3 px-3 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed"
                             >
                               <option value="">Pilih anggota</option>
                               {availableMembers.map((member) => (
@@ -196,19 +196,6 @@ export const ItemManager: React.FC<ItemManagerProps> = ({
                                 </option>
                               ))}
                             </select>
-
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (!selectedValue) return;
-                                onAssignItem(item.id, [...assignedMemberIds, selectedValue]);
-                                setSelectedMemberToAdd((prev) => ({ ...prev, [item.id]: '' }));
-                              }}
-                              disabled={!selectedValue || availableMembers.length === 0}
-                              className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 text-white px-4 py-3 text-sm font-semibold hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                            >
-                              <Plus size={16} /> Tambah Anggota
-                            </button>
 
                             <p className="text-[10px] text-slate-500">
                               Pilih anggota untuk langsung ditambahkan ke item.
