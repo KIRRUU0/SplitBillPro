@@ -564,13 +564,13 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
             {/* Payment Routing: Who pays and method */}
             <div className="no-print grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
               <div>
-                <label className="text-xs text-slate-400">Siapa yang Membayar</label>
+                <label className="text-xs text-slate-400">Bayar ke siapa</label>
                 <select
                   value={payerId}
                   onChange={(e) => setPayerId(e.target.value)}
                   className="w-full mt-1 bg-slate-950/40 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100"
                 >
-                  <option value="">Pilih Pembayar</option>
+                  <option value="">Pilih nama</option>
                   {members.map(m => (
                     <option key={m.id} value={m.id}>{m.name}</option>
                   ))}

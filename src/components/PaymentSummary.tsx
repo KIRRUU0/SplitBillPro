@@ -65,7 +65,7 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
         </div>
         {payer && (
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
-            <span style={{ color: '#555' }}>Pembayar</span>
+            <span style={{ color: '#555' }}>Bayar ke siapa?</span>
             <span>{payer.name}</span>
           </div>
         )}
