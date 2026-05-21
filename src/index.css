@@ -50,10 +50,20 @@ body {
   background-color: var(--color-card) !important;
 }
 
+.bg-slate-900\/25 {
+  background-color: var(--color-card-darker) !important;
+}
+
+.bg-slate-900\/10 {
+  background-color: rgba(74, 59, 50, 0.04) !important;
+}
+
 /* Hover states */
 .hover\:bg-slate-900\/75:hover,
 .hover\:bg-slate-900\/70:hover,
 .hover\:bg-slate-900\/25:hover,
+.hover\:bg-slate-900\/30:hover,
+.hover\:bg-slate-800\/30:hover,
 .hover\:bg-slate-800\/40:hover,
 .group:hover .group-hover\:bg-slate-900\/40 {
   background-color: var(--color-card-darker) !important;

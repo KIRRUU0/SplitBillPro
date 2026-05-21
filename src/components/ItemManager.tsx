@@ -156,12 +156,12 @@ export const ItemManager: React.FC<ItemManagerProps> = ({
                                 const member = members.find((m) => m.id === memberId);
                                 if (!member) return null;
                                 return (
-                                  <span key={member.id} className="inline-flex items-center gap-2 rounded-full bg-slate-800/70 text-slate-200 px-3 py-1 text-[11px]">
+                                  <span key={member.id} className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 text-indigo-400 font-medium px-3 py-1 text-[11px]">
                                     {member.name}
                                     <button
                                       type="button"
                                       onClick={() => onAssignItem(item.id, assignedMemberIds.filter((id) => id !== member.id))}
-                                      className="rounded-full border border-slate-700 p-0.5 text-slate-400 hover:text-red-400 hover:border-red-400 transition-colors"
+                                      className="hover:text-red-500 transition-colors font-bold text-[9px] ml-1 text-indigo-400/85"
                                       aria-label={`Hapus ${member.name} dari item`}
                                     >
                                       ✕
