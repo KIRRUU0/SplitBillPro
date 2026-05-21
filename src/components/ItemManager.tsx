@@ -181,7 +181,7 @@ export const ItemManager: React.FC<ItemManagerProps> = ({
                               disabled={members.length === 0 || availableMembers.length === 0}
                               className="w-full bg-slate-800 border border-slate-700 rounded-xl py-2 px-3 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              <option value="">Pilih anggota untuk tambah</option>
+                              <option value="">Pilih</option>
                               {availableMembers.map((member) => (
                                 <option key={member.id} value={member.id}>
                                   {member.name}
