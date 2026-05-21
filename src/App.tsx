@@ -61,24 +61,34 @@ function App() {
 
   const tutorialSteps = [
     {
-      title: 'Tambah Anggota',
-      description: 'Masukkan semua orang yang akan ikut membayar. Ini adalah dasar pembagian biaya.',
-      tip: 'Gunakan panel Anggota di kiri untuk menambahkan nama teman Anda.'
+      title: 'Langkah 1: Tambah Anggota',
+      description: 'Masukkan nama-nama anggota yang ikut dalam tagihan ini sebagai dasar pembagian biaya.',
+      tip: 'Ketik nama anggota lalu klik ikon tambah (+) atau tekan Enter.'
     },
     {
-      title: 'Tambah Item',
-      description: 'Masukkan barang atau makanan yang dibeli. Untuk item yang dibagi, pilih lebih dari satu anggota.',
-      tip: 'Setiap item bisa dibuat shared dengan memilih beberapa anggota di daftar item.'
+      title: 'Langkah 2: Informasi Pembayaran',
+      description: 'Tentukan siapa pembayar utama tagihan ini dan metode pembayarannya.',
+      tip: 'Informasi ini akan mempermudah anggota untuk mentransfer bagian mereka.'
     },
     {
-      title: 'Atur Pajak / Service Charge',
-      description: 'Masukkan nilai pajak atau service charge, lalu pajak akan dibagi rata ke anggota.',
-      tip: 'Pilih mode Nominal atau Persentase sesuai jenis biaya tambahan yang Anda miliki.'
+      title: 'Langkah 3: Scan Struk Belanja (Opsional)',
+      description: 'Gunakan kamera atau upload foto struk untuk membaca nama item dan harga secara otomatis menggunakan OCR.',
+      tip: 'Item PB1/Pajak pada struk akan otomatis dideteksi dan dialihkan ke Pajak Global.'
     },
     {
-      title: 'Simpan & Review',
-      description: 'Simpan tagihan di browser ini dan lihat ringkasan per-orang sebelum mencetak.',
-      tip: 'Gunakan tombol Simpan lalu cek ringkasan untuk memastikan semua sudah benar.'
+      title: 'Langkah 4: Tambah & Alokasikan Item',
+      description: 'Masukkan detail item belanjaan atau alokasikan item yang ter-scan ke masing-masing anggota.',
+      tip: 'Klik pada nama anggota di baris item untuk membagi biaya item tersebut di antara mereka.'
+    },
+    {
+      title: 'Langkah 5: Pajak & Biaya Tambahan',
+      description: 'Atur nominal atau persentase pajak global (PB1, PPN, atau service charge) jika ada.',
+      tip: 'Pajak global ini akan otomatis dibagi rata kepada semua anggota yang terdaftar.'
+    },
+    {
+      title: 'Langkah 6: Ringkasan & Cetak',
+      description: 'Periksa kembali rincian pembagian tagihan dan klik "Cetak & Bagikan" untuk menyimpan & mencetak rincian.',
+      tip: 'Mencetak rincian akan otomatis menyimpan tagihan ke daftar riwayat Anda.'
     }
   ];
 
