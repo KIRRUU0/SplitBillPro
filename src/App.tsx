@@ -794,41 +794,45 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
       </main>
 
       {showTutorial && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 p-4">
-          <div className="w-full max-w-3xl rounded-3xl bg-slate-900 border border-slate-700 shadow-2xl p-8 text-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-2xl rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 md:p-8 text-slate-100 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-indigo-400 font-semibold">Tutorial SplitBill Pro</p>
-                <h2 className="mt-3 text-2xl font-bold text-white">Panduan Langkah demi Langkah</h2>
-                <p className="mt-1 text-xs text-slate-400">Ikuti wizard berikut untuk menggunakan SplitBill Pro secara langsung.</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-indigo-450 font-bold">Tutorial SplitBill Pro</p>
+                <h2 className="mt-2 text-xl md:text-2xl font-extrabold text-slate-100">Panduan Langkah demi Langkah</h2>
+                <p className="mt-1 text-xs text-slate-500">Ikuti langkah-langkah di bawah untuk membagi tagihan Anda dengan presisi.</p>
               </div>
               <button
                 onClick={handleCloseTutorial}
-                className="rounded-full p-2 bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition-all"
+                className="rounded-full p-2 bg-slate-900/10 border border-slate-800 text-slate-500 hover:bg-slate-900/20 hover:text-slate-700 transition-all"
                 aria-label="Tutup tutorial"
               >
                 ✕
               </button>
             </div>
 
-            <div className="rounded-3xl bg-slate-950/80 border border-slate-800 p-6">
-              <div className="mb-4 text-sm text-slate-300">
-                <p className="font-semibold text-slate-100">Langkah {tutorialStep + 1} dari {tutorialSteps.length}</p>
+            <div className="rounded-2xl bg-slate-900/25 border border-slate-800 p-5 md:p-6">
+              <div className="mb-4 text-xs font-bold text-indigo-450">
+                Langkah {tutorialStep + 1} dari {tutorialSteps.length}
               </div>
               <div className="space-y-4">
-                <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5">
-                  <h3 className="text-lg font-semibold text-white">{tutorialSteps[tutorialStep].title}</h3>
-                  <p className="mt-3 text-slate-300">{tutorialSteps[tutorialStep].description}</p>
-                  <p className="mt-3 text-sm text-slate-400">{tutorialSteps[tutorialStep].tip}</p>
+                <div className="rounded-2xl bg-slate-900 border border-slate-800 p-5 shadow-sm">
+                  <h3 className="text-base md:text-lg font-extrabold text-slate-100">{tutorialSteps[tutorialStep].title}</h3>
+                  <p className="mt-2.5 text-slate-600 text-sm leading-relaxed">{tutorialSteps[tutorialStep].description}</p>
+                  
+                  <div className="mt-4 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-xs text-indigo-450 flex gap-2">
+                    <span className="font-bold flex-shrink-0">TIPS:</span>
+                    <span className="leading-relaxed">{tutorialSteps[tutorialStep].tip}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
               <button
                 onClick={handlePreviousTutorialStep}
                 disabled={tutorialStep === 0}
-                className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-slate-800 border border-slate-700 text-slate-300 disabled:opacity-50 hover:bg-slate-700 transition-all"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-900/10 border border-slate-800 text-slate-600 disabled:opacity-30 hover:bg-slate-900/20 transition-all text-xs font-bold"
                 type="button"
               >
                 Sebelumnya
@@ -836,14 +840,14 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <button
                   onClick={handleCloseTutorial}
-                  className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-transparent border border-slate-700 text-slate-300 hover:bg-slate-800 transition-all"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-transparent border border-slate-800 text-slate-500 hover:bg-slate-900/10 transition-all text-xs font-bold"
                   type="button"
                 >
                   Tutup
                 </button>
                 <button
                   onClick={tutorialStep === tutorialSteps.length - 1 ? handleCloseTutorial : handleNextTutorialStep}
-                  className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-indigo-500 text-white font-semibold hover:bg-indigo-600 transition-all"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-indigo-500 text-white font-bold hover:bg-indigo-650 transition-all text-xs shadow-md shadow-indigo-500/25 active:scale-[0.98]"
                   type="button"
                 >
                   {tutorialStep === tutorialSteps.length - 1 ? 'Selesai' : 'Berikutnya'}
@@ -853,6 +857,7 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
           </div>
         </div>
       )}
+
 
       {/* Modern Footer */}
       <footer className="mt-auto py-6 border-t border-slate-900 bg-slate-950 text-center text-xs text-slate-500 space-y-2">
