@@ -703,6 +703,7 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
                   payerId={payerId}
                   paymentMethod={paymentMethod}
                   printMode={false}
+                  onSaveBill={handleSaveBill}
                 />
 
 
@@ -791,6 +792,7 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
           payerId={payerId}
           paymentMethod={paymentMethod}
           printMode={true}
+          onSaveBill={handleSaveBill}
         />
       </div>
     </div>
