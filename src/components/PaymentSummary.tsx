@@ -8,13 +8,21 @@ interface PaymentSummaryProps {
   items: BillItem[];
   totalTax: number;
   billTitle: string;
+  payerId?: string;
+  payeeId?: string;
+  paymentMethod?: string;
+  printMode?: boolean; // when true show compact print output
 }
 
 export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
   members,
   items,
   totalTax,
-  billTitle
+  billTitle,
+  payerId,
+  payeeId,
+  paymentMethod,
+  printMode = false
 }) => {
   const [expandedMembers, setExpandedMembers] = useState<Record<string, boolean>>({});
 
@@ -45,6 +53,44 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
   const totalItemsPrice = items.reduce((acc, curr) => acc + curr.price, 0);
   // Total Keseluruhan Tagihan = Subtotal Item + Pajak Global
   const grandTotalBill = totalItemsPrice + totalTax;
+  const payer = members.find(m => m.id === payerId);
+  const payee = members.find(m => m.id === payeeId);
+
+  // If printMode is enabled, render a compact print sheet without per-person breakdown
+  if (printMode) {
+    return (
+      <div className="bg-white text-black p-6 rounded-none w-full">
+        <div className="text-center mb-4">
+          <h2 className="text-base font-extrabold">{billTitle || 'Rincian Tagihan'}</h2>
+          <p className="text-xs text-slate-600 mt-1">Dicetak pada: {new Date().toLocaleString('id-ID')}</p>
+        </div>
+
+        <div className="mt-4 text-sm space-y-2">
+          <div className="flex justify-between">
+            <span className="text-slate-700">Total Tagihan</span>
+            <strong>{formatRupiah(grandTotalBill)}</strong>
+          </div>
+
+          <div className="flex justify-between">
+            <span className="text-slate-700">Pembayar</span>
+            <span>{payer ? payer.name : '-'}</span>
+          </div>
+
+          <div className="flex justify-between">
+            <span className="text-slate-700">Bayar Kepada</span>
+            <span>{payee ? payee.name : '-'}</span>
+          </div>
+
+          <div className="flex justify-between">
+            <span className="text-slate-700">Metode</span>
+            <span>{paymentMethod || '-'}</span>
+          </div>
+        </div>
+
+        <div className="mt-8 text-center text-xs text-slate-500">-- Hanya ringkasan pembayaran --</div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl p-6 border border-slate-700/60 shadow-xl space-y-6">

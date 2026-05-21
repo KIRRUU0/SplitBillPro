@@ -42,6 +42,10 @@ function App() {
   const [totalTax, setTotalTax] = useState<number>(0);
   const [members, setMembers] = useState<Member[]>([]);
   const [items, setItems] = useState<BillItem[]>([]);
+  // Payment routing state
+  const [payerId, setPayerId] = useState<string>('');
+  const [payeeId, setPayeeId] = useState<string>('');
+  const [paymentMethod, setPaymentMethod] = useState<string>('');
 
   // States Management Data & UI
   const [savedBills, setSavedBills] = useState<Bill[]>([]);
@@ -448,6 +452,8 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
                 <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-400" />
                 <span className="text-xs">Memuat data...</span>
               </div>
+
+            
             ) : savedBills.length === 0 ? (
               <div className="h-40 flex flex-col items-center justify-center text-slate-500 text-center border border-dashed border-slate-800 rounded-xl p-4">
                 <FileText size={20} className="mb-1.5 opacity-30" />
@@ -549,6 +555,48 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
                   <span>Simpan Tagihan</span>
                 </button>
 
+              </div>
+            </div>
+
+            {/* Payment Routing: Who pays, to whom, method */}
+            <div className="no-print grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+              <div>
+                <label className="text-xs text-slate-400">Siapa yang Membayar</label>
+                <select
+                  value={payerId}
+                  onChange={(e) => setPayerId(e.target.value)}
+                  className="w-full mt-1 bg-slate-950/40 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100"
+                >
+                  <option value="">Pilih Pembayar</option>
+                  {members.map(m => (
+                    <option key={m.id} value={m.id}>{m.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs text-slate-400">Bayar Kepada</label>
+                <select
+                  value={payeeId}
+                  onChange={(e) => setPayeeId(e.target.value)}
+                  className="w-full mt-1 bg-slate-950/40 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100"
+                >
+                  <option value="">Pilih Penerima Pembayaran</option>
+                  {members.map(m => (
+                    <option key={m.id} value={m.id}>{m.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs text-slate-400">Metode Pembayaran</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Tunai / Transfer BCA"
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="w-full mt-1 bg-slate-950/40 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100"
+                />
               </div>
             </div>
 
@@ -663,6 +711,10 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
                   items={items}
                   totalTax={totalTax}
                   billTitle={billTitle}
+                  payerId={payerId}
+                  payeeId={payeeId}
+                  paymentMethod={paymentMethod}
+                  printMode={true}
                 />
               </div>
             </div>
@@ -746,6 +798,10 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
           items={items}
           totalTax={totalTax}
           billTitle={billTitle}
+          payerId={payerId}
+          payeeId={payeeId}
+          paymentMethod={paymentMethod}
+          printMode={true}
         />
       </div>
     </div>
