@@ -397,6 +397,7 @@ export const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onItemsScanned }
                           value={item.item_name}
                           onChange={(e) => handleUpdateItem(item.id, 'item_name', e.target.value)}
                           placeholder="Contoh: Nasi Goreng"
+                          aria-label="Nama Item Hasil Scan"
                           className="w-full bg-slate-800 border border-slate-700/50 rounded px-2 py-1 text-slate-100 focus:outline-none focus:border-indigo-500"
                         />
                       </td>
@@ -406,6 +407,7 @@ export const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onItemsScanned }
                           value={item.price ? formatInputRupiah(item.price) : ''}
                           onChange={(e) => handleUpdateItem(item.id, 'price', parseRupiahToNumber(e.target.value))}
                           placeholder="0"
+                          aria-label="Harga Item Hasil Scan"
                           className="w-full bg-slate-800 border border-slate-700/50 rounded px-2 py-1 text-slate-100 focus:outline-none focus:border-indigo-500"
                         />
                       </td>

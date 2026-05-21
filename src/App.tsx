@@ -580,6 +580,7 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
                   value={billTitle}
                   onChange={(e) => setBillTitle(e.target.value)}
                   placeholder="Masukkan Judul Tagihan (cth: Makan Malam Ultah)"
+                  aria-label="Judul Tagihan"
                   className="bg-transparent border-b border-transparent hover:border-slate-800 focus:border-indigo-500 text-lg md:text-xl font-bold text-slate-100 placeholder-slate-600 focus:outline-none py-1 w-full transition-all"
                 />
                 <div className="flex items-center gap-2">
@@ -588,6 +589,7 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
                     type="date"
                     value={billDate}
                     onChange={(e) => setBillDate(e.target.value)}
+                    aria-label="Tanggal Tagihan"
                     className="bg-transparent border-b border-transparent hover:border-slate-800 focus:border-indigo-500 text-xs text-slate-400 focus:text-slate-200 focus:outline-none py-0.5 transition-all cursor-pointer [color-scheme:light]"
                   />
                 </div>
@@ -636,8 +638,9 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Bayar ke siapa</label>
+                    <label htmlFor="payerIdSelect" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Bayar ke siapa</label>
                     <select
+                      id="payerIdSelect"
                       value={payerId}
                       onChange={(e) => setPayerId(e.target.value)}
                       disabled={members.length === 0}
@@ -657,8 +660,9 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
                   </div>
 
                   <div>
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Metode Pembayaran</label>
+                    <label htmlFor="paymentMethodInput" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Metode Pembayaran</label>
                     <input
+                      id="paymentMethodInput"
                       type="text"
                       placeholder="Contoh: Tunai / Transfer BCA"
                       value={paymentMethod}

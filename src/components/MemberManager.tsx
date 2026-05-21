@@ -60,6 +60,7 @@ export const MemberManager: React.FC<MemberManagerProps> = ({
                 if (error) setError(null);
               }}
               placeholder="Contoh: Andi, Budi, Cici"
+              aria-label="Nama anggota baru"
               className="w-full bg-slate-900/60 border border-slate-700 hover:border-slate-600 focus:border-violet-500 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none transition-colors"
             />
           </div>

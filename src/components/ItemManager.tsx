@@ -77,6 +77,7 @@ export const ItemManager: React.FC<ItemManagerProps> = ({
                 if (error) setError(null);
               }}
               placeholder="Nama barang (cth: Nasi Goreng)"
+              aria-label="Nama barang"
               className="w-full bg-slate-900/60 border border-slate-700 hover:border-slate-600 focus:border-emerald-500 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none transition-colors"
             />
           </div>
@@ -92,6 +93,7 @@ export const ItemManager: React.FC<ItemManagerProps> = ({
                   if (error) setError(null);
                 }}
                 placeholder="Harga (cth: 25.000)"
+                aria-label="Harga barang"
                 className="w-full bg-slate-900/60 border border-slate-700 hover:border-slate-600 focus:border-emerald-500 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none transition-colors"
               />
             </div>
@@ -187,6 +189,7 @@ export const ItemManager: React.FC<ItemManagerProps> = ({
                                 setSelectedMemberToAdd((prev) => ({ ...prev, [item.id]: '' }));
                               }}
                               disabled={members.length === 0 || availableMembers.length === 0}
+                              aria-label="Pilih anggota untuk ditugaskan"
                               className="w-full sm:w-[240px] bg-slate-800 border border-slate-700 rounded-2xl py-3 px-3 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed"
                             >
                               <option value="">Pilih anggota</option>
