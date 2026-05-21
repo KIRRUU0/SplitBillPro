@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { 
   Plus, 
   Save, 
-  Database, 
   Trash2, 
   Info, 
   Sparkles, 
@@ -401,10 +400,7 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
 
         {/* Database Status Indicator */}
         <div className="flex items-center flex-wrap gap-2 md:gap-3 justify-center md:justify-end">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold bg-slate-900 border-slate-800 text-slate-400">
-            <Database size={13} />
-            <span>Penyimpanan Lokal Aktif</span>
-          </div>
+        
 
           <a 
             href="https://saweria.co/kirru"
