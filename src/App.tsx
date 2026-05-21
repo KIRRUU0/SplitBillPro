@@ -456,22 +456,30 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mt-5 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mt-5 text-sm">
             <div className="rounded-2xl border border-slate-800 p-4 bg-slate-950/70">
               <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold">1. Tambah Anggota</p>
-              <p className="mt-2 text-slate-300 text-sm">Masukkan nama semua orang yang ikut membayar.</p>
+              <p className="mt-2 text-slate-300 text-xs leading-relaxed">Masukkan nama-nama anggota yang ikut membayar.</p>
             </div>
             <div className="rounded-2xl border border-slate-800 p-4 bg-slate-950/70">
-              <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold">2. Tambah Item</p>
-              <p className="mt-2 text-slate-300 text-sm">Isi barang belanja dan pilih siapa yang membayar setiap item.</p>
+              <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold">2. Info Bayar</p>
+              <p className="mt-2 text-slate-300 text-xs leading-relaxed">Pilih pembayar utama & metode pembayaran.</p>
             </div>
             <div className="rounded-2xl border border-slate-800 p-4 bg-slate-950/70">
-              <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold">3. Atur Pajak</p>
-              <p className="mt-2 text-slate-300 text-sm">Masukkan pajak/service charge, langsung dibagi rata ke anggota.</p>
+              <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold">3. Scan Struk</p>
+              <p className="mt-2 text-slate-300 text-xs leading-relaxed">Scan struk belanja dengan OCR secara otomatis (opsional).</p>
             </div>
             <div className="rounded-2xl border border-slate-800 p-4 bg-slate-950/70">
-              <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold">4. Simpan & Review</p>
-              <p className="mt-2 text-slate-300 text-sm">Simpan tagihan, kemudian lihat ringkasan dan cetak jika perlu.</p>
+              <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold">4. Alokasi Item</p>
+              <p className="mt-2 text-slate-300 text-xs leading-relaxed">Masukkan detail item dan alokasikan porsi anggota.</p>
+            </div>
+            <div className="rounded-2xl border border-slate-800 p-4 bg-slate-950/70">
+              <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold">5. Pajak Global</p>
+              <p className="mt-2 text-slate-300 text-xs leading-relaxed">Atur nominal/persentase pajak global untuk dibagi rata.</p>
+            </div>
+            <div className="rounded-2xl border border-slate-800 p-4 bg-slate-950/70">
+              <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold">6. Cetak & Simpan</p>
+              <p className="mt-2 text-slate-300 text-xs leading-relaxed">Review rincian tagihan, simpan otomatis, & cetak rincian.</p>
             </div>
           </div>
         </div>
