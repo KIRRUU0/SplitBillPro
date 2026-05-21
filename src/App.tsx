@@ -343,7 +343,7 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500/30 selection:text-indigo-200">
-      <div className="app-ui">
+      <div className="app-ui no-print">
       {/* Toast Notification */}
       {toast && (
         <div className="fixed bottom-5 right-5 z-50 animate-bounce max-w-sm">
@@ -705,17 +705,7 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
                   printMode={false}
                 />
 
-                <div className="hidden print:block print-only">
-                  <PaymentSummary 
-                    members={members}
-                    items={items}
-                    totalTax={totalTax}
-                    billTitle={billTitle}
-                    payerId={payerId}
-                    paymentMethod={paymentMethod}
-                    printMode={true}
-                  />
-                </div>
+
               </div>
             </div>
 
@@ -792,7 +782,7 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
       </footer>
       </div>
 
-      <div className="hidden print:block print-only">
+      <div className="print-only">
         <PaymentSummary
           members={members}
           items={items}

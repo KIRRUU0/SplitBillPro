@@ -14,19 +14,25 @@ body {
   min-height: 100vh;
 }
 
+/* Saat di layar, sembunyikan elemen print-only */
+.print-only {
+  display: none;
+}
+
 /* Print Styles */
 @media print {
-  /* Sembunyikan elemen no-print */
-  .no-print, 
-  header, 
-  aside,
-  button,
-  .no-print * {
+  /* Sembunyikan seluruh UI aplikasi saat cetak */
+  .no-print {
     display: none !important;
   }
 
-  /* Reset background & warna text untuk cetak */
-  body, html, #root, main {
+  /* Sembunyikan tombol di seluruh halaman */
+  button {
+    display: none !important;
+  }
+
+  /* Reset background & warna teks untuk kertas putih */
+  body, html, #root {
     background: white !important;
     color: black !important;
     width: 100% !important;
@@ -35,60 +41,20 @@ body {
     padding: 0 !important;
   }
 
-  /* Reset grid layout ke block vertikal */
-  main, .grid, .grid-cols-1, .grid-cols-2, .grid-cols-3, .grid-cols-4 {
-    display: block !important;
-  }
-
-  /* Styling box dan panel transparansi untuk kertas putih */
-  .bg-slate-800\/50, 
-  .bg-slate-900\/40, 
-  .bg-slate-900\/60, 
-  .bg-slate-900\/50, 
-  .bg-slate-900\/20, 
-  .bg-slate-950\/30,
-  .bg-slate-900\/25 {
-    background: #f8fafc !important; /* slate-50 */
-    border: 1px solid #cbd5e1 !important; /* slate-300 */
-    color: black !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
-  }
-
-  /* Reset warna teks */
-  h1, h2, h3, h4, h5, h6, 
-  span, p, div, table, tr, td, th, strong {
-    color: black !important;
-  }
-
-  /* Pastikan border terlihat */
-  .border, .border-b, .border-t, .divide-y > * {
-    border-color: #cbd5e1 !important; /* slate-300 */
-  }
-
-  /* Selalu tampilkan detail barang per anggota saat cetak */
-  .print-force-show {
-    display: block !important;
-  }
-
-  /* Tampilkan hanya konten print-only saat mencetak */
-  body * {
-    display: none !important;
-  }
-
-  .print-only,
-  .print-only * {
-    display: revert !important;
-  }
-
+  /* Tampilkan container print-only */
   .print-only {
+    display: block !important;
     position: static !important;
-    top: auto !important;
-    left: auto !important;
     width: 100% !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 20px !important;
     background: white !important;
+    color: black !important;
+  }
+
+  /* Pastikan semua anak print-only terlihat */
+  .print-only * {
+    color: black !important;
   }
 
   .print-only table {
@@ -96,8 +62,26 @@ body {
     border-collapse: collapse !important;
   }
 
+  .print-only td,
+  .print-only th {
+    padding: 4px 0 !important;
+  }
+
+  /* Pastikan border terlihat */
+  .print-only .border,
+  .print-only .border-b,
+  .print-only .border-t {
+    border-color: #cbd5e1 !important;
+  }
+
   /* Hindari pemotongan halaman di tengah baris data */
-  tr, .border {
+  tr {
     page-break-inside: avoid;
+  }
+
+  /* Konfigurasi kertas cetak */
+  @page {
+    margin: 10mm;
+    size: auto;
   }
 }
