@@ -400,7 +400,7 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
       </header>
 
       {/* Quick Start Guide */}
-      <section className="max-w-7xl w-full mx-auto px-4 md:px-6 pb-4">
+      <section className="max-w-7xl w-full mx-auto px-4 md:px-6 mt-8 pb-4">
         <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-5 shadow-xl">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
