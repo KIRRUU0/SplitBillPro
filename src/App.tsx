@@ -538,7 +538,7 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
                     type="date"
                     value={billDate}
                     onChange={(e) => setBillDate(e.target.value)}
-                    className="bg-transparent border-b border-transparent hover:border-slate-800 focus:border-indigo-500 text-xs text-slate-400 focus:text-slate-200 focus:outline-none py-0.5 transition-all cursor-pointer [color-scheme:dark]"
+                    className="bg-transparent border-b border-transparent hover:border-slate-800 focus:border-indigo-500 text-xs text-slate-400 focus:text-slate-200 focus:outline-none py-0.5 transition-all cursor-pointer [color-scheme:light]"
                   />
                 </div>
               </div>

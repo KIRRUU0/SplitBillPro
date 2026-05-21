@@ -4,9 +4,24 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-primary: #1C1E21;       /* Charcoal */
+  --color-secondary: #4A3B32;     /* Chocolate/Brown */
+  --color-accent: #C6939A;        /* Mauve/Pink */
+  --color-accent-hover: #b58087;
+  --color-bg: #EBE7DF;            /* Cream */
+  --color-card: #F5F2ED;          /* Light Cream Card */
+  --color-card-darker: #E5E0D5;   /* Darker Cream Card for Hover/Focus */
+  --color-border: #D9D3C9;        /* Soft Border */
+  --color-sage: #8F9E8B;          /* Soft Sage Green instead of Emerald */
+}
+
 body {
   font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
-  @apply bg-slate-900 text-slate-100 min-h-screen antialiased;
+  background-color: var(--color-bg) !important;
+  color: var(--color-primary) !important;
+  min-height: 100vh;
+  position: relative;
 }
 
 #root {
@@ -14,12 +29,181 @@ body {
   min-height: 100vh;
 }
 
+/* TAMPILAN SCREEN UTAMA - THEME OVERRIDES (CREAM, CHARCOAL, MAUVE) */
+
+/* Override Backgrounds */
+.bg-slate-950 {
+  background-color: var(--color-bg) !important;
+}
+
+.bg-slate-900,
+.bg-slate-900\/40,
+.bg-slate-900\/60,
+.bg-slate-900\/30,
+.bg-slate-900\/50,
+.bg-slate-800,
+.bg-slate-800\/50,
+.bg-slate-950\/70,
+.bg-slate-950\/80,
+.bg-slate-950\/40,
+.bg-slate-950\/30 {
+  background-color: var(--color-card) !important;
+}
+
+/* Hover states */
+.hover\:bg-slate-900\/75:hover,
+.hover\:bg-slate-900\/70:hover,
+.hover\:bg-slate-900\/25:hover,
+.hover\:bg-slate-800\/40:hover,
+.group:hover .group-hover\:bg-slate-900\/40 {
+  background-color: var(--color-card-darker) !important;
+}
+
+/* Border overrides */
+.border-slate-800,
+.border-slate-800\/50,
+.border-slate-800\/80,
+.border-slate-700,
+.border-slate-700\/60,
+.border-slate-700\/50,
+.border-slate-900,
+.border-slate-900\/80 {
+  border-color: var(--color-border) !important;
+}
+
+/* Text color overrides */
+.text-slate-100,
+.text-slate-200,
+.text-slate-300,
+.text-slate-50,
+.text-white {
+  color: var(--color-primary) !important;
+}
+
+.text-slate-400,
+.text-slate-450,
+.text-slate-500 {
+  color: var(--color-secondary) !important;
+  opacity: 0.9;
+}
+
+.text-slate-600 {
+  color: var(--color-secondary) !important;
+  opacity: 0.7;
+}
+
+/* Accent Buttons & Hover Effects (Mauve) */
+.bg-indigo-500,
+.bg-indigo-600,
+.bg-violet-500,
+.bg-violet-600,
+.from-indigo-500,
+.from-violet-500,
+.from-indigo-600,
+.from-violet-600 {
+  background: var(--color-accent) !important;
+  background-image: none !important;
+  color: white !important;
+}
+
+.to-violet-600,
+.to-indigo-600,
+.to-violet-750,
+.to-indigo-750 {
+  background: var(--color-accent-hover) !important;
+}
+
+.hover\:from-indigo-600:hover,
+.hover\:from-violet-600:hover,
+.hover\:bg-indigo-700:hover,
+.hover\:bg-indigo-600:hover,
+.hover\:bg-violet-600:hover {
+  background-color: var(--color-accent-hover) !important;
+  color: white !important;
+}
+
+/* Text accents */
+.text-indigo-400,
+.text-violet-400,
+.text-indigo-450 {
+  color: #B27B83 !important; /* Contrasting mauve for text */
+}
+
+/* Accent badges and soft backgrounds */
+.bg-indigo-500\/10,
+.bg-violet-500\/10,
+.bg-indigo-950\/50,
+.bg-violet-950\/50 {
+  background-color: rgba(198, 147, 154, 0.15) !important;
+  color: #B27B83 !important;
+}
+
+.border-indigo-500\/30,
+.border-indigo-500\/40,
+.border-violet-500\/30,
+.border-indigo-900\/40,
+.border-indigo-950\/30 {
+  border-color: rgba(198, 147, 154, 0.3) !important;
+}
+
+/* Success Total Box (Sage Green instead of Emerald) */
+.from-emerald-500\/10,
+.to-teal-500\/5 {
+  background: rgba(143, 158, 139, 0.15) !important;
+}
+.border-emerald-500\/20 {
+  border-color: rgba(143, 158, 139, 0.3) !important;
+}
+.text-emerald-400,
+.text-emerald-450 {
+  color: #6C7D68 !important; /* Sage Darker */
+}
+
+/* Dropdowns, Inputs & Form elements */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select {
+  background-color: var(--color-card) !important;
+  color: var(--color-primary) !important;
+  border-color: var(--color-border) !important;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+select:focus {
+  border-color: var(--color-accent) !important;
+  box-shadow: 0 0 0 2px rgba(198, 147, 154, 0.2) !important;
+}
+
+/* Calendar Date Input Icon (Dark color-scheme override for cream theme) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.1) sepia(0.1) saturate(1) hue-rotate(15deg);
+}
+
+/* Scrollbar override for Cream theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-secondary);
+}
+
 /* Saat di layar, sembunyikan elemen print-only */
 .print-only {
   display: none;
 }
 
-/* Print Styles */
+/* PRINT STYLES */
 @media print {
   /* Sembunyikan seluruh UI aplikasi saat cetak */
   .no-print {
