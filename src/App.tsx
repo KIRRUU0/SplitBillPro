@@ -12,7 +12,8 @@ import {
   FileText,
   CalendarDays,
   RefreshCcw,
-  Wallet
+  Wallet,
+  Heart
 } from 'lucide-react';
 import type { Member, BillItem, Bill } from './types';
 import { MemberManager } from './components/MemberManager';
@@ -399,11 +400,22 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
         </div>
 
         {/* Database Status Indicator */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center flex-wrap gap-2 md:gap-3 justify-center md:justify-end">
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold bg-slate-900 border-slate-800 text-slate-400">
             <Database size={13} />
             <span>Penyimpanan Lokal Aktif</span>
           </div>
+
+          <a 
+            href="https://saweria.co/kirru"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-orange-500/25 flex items-center gap-1.5 active:scale-[0.98]"
+            title="Dukung Developer via Saweria"
+          >
+            <Heart size={13} className="fill-white text-white animate-pulse" />
+            <span>Dukung Saya</span>
+          </a>
 
           <button 
             onClick={handleOpenTutorial}
@@ -829,8 +841,19 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
       )}
 
       {/* Modern Footer */}
-      <footer className="mt-auto py-6 border-t border-slate-900 bg-slate-950 text-center text-xs text-slate-500">
+      <footer className="mt-auto py-6 border-t border-slate-900 bg-slate-950 text-center text-xs text-slate-500 space-y-2">
         <p>&copy; {new Date().getFullYear()} SplitBill Pro. Dirancang untuk pembagian finansial yang presisi.</p>
+        <p>
+          Dukung pengembangan aplikasi ini via{" "}
+          <a 
+            href="https://saweria.co/kirru" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-orange-400 hover:text-orange-300 font-semibold underline transition-colors"
+          >
+            Saweria
+          </a>
+        </p>
       </footer>
       </div>
 
