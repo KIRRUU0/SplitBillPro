@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   Plus, 
   Save, 
@@ -10,7 +10,10 @@ import {
   AlertTriangle,
   CheckCircle,
   FileText,
-  CalendarDays
+  CalendarDays,
+  Download,
+  Upload,
+  RefreshCcw
 } from 'lucide-react';
 import type { Member, BillItem, Bill } from './types';
 import { MemberManager } from './components/MemberManager';
@@ -48,6 +51,10 @@ function App() {
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
+  const importFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const LOCAL_STORAGE_BILLS_KEY = 'splitbill_pro_bills';
+  const LOCAL_STORAGE_DETAILS_PREFIX = 'splitbill_pro_details_';
 
   useEffect(() => {
     // Inisialisasi tagihan baru saat start
@@ -80,6 +87,162 @@ function App() {
     setToast({ message, type });
   };
 
+  const downloadJSON = (filename: string, data: unknown) => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportCurrentBill = () => {
+    if (!billTitle.trim()) {
+      showToast('Masukkan judul tagihan sebelum ekspor.', 'warning');
+      return;
+    }
+
+    const subtotal = items.reduce((acc, curr) => acc + curr.price, 0);
+    const payload = {
+      bill: {
+        id: billId,
+        title: billTitle,
+        total_amount: subtotal + totalTax,
+        total_tax: totalTax,
+        bill_date: billDate,
+        created_at: new Date().toISOString()
+      },
+      members,
+      items
+    };
+
+    downloadJSON(
+      `splitbill-${billTitle.replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase() || 'tagihan'}-${new Date().toISOString().slice(0, 10)}.json`,
+      payload
+    );
+  };
+
+  const handleExportAllBills = () => {
+    if (savedBills.length === 0) {
+      showToast('Tidak ada tagihan tersimpan untuk diekspor.', 'warning');
+      return;
+    }
+
+    const details: Record<string, { members: Member[]; items: BillItem[] }> = {};
+    savedBills.forEach((bill) => {
+      const stored = localStorage.getItem(`${LOCAL_STORAGE_DETAILS_PREFIX}${bill.id}`);
+      if (stored) {
+        try {
+          details[bill.id] = JSON.parse(stored);
+        } catch {
+          details[bill.id] = { members: [], items: [] };
+        }
+      } else {
+        details[bill.id] = { members: [], items: [] };
+      }
+    });
+
+    downloadJSON(`splitbill-all-bills-${new Date().toISOString().slice(0, 10)}.json`, {
+      bills: savedBills,
+      details
+    });
+  };
+
+  const handleOpenImportDialog = () => {
+    importFileInputRef.current?.click();
+  };
+
+  const handleImportBillFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const text = String(reader.result || '');
+        const json = JSON.parse(text);
+
+        let importedBills: Bill[] = [];
+        let importedDetails: Record<string, { members: Member[]; items: BillItem[] }> = {};
+
+        if (Array.isArray(json.bills) && typeof json.details === 'object') {
+          importedBills = json.bills;
+          importedDetails = json.details;
+        } else if (json.bill && Array.isArray(json.members) && Array.isArray(json.items)) {
+          importedBills = [json.bill];
+          importedDetails = { [json.bill.id]: { members: json.members, items: json.items } };
+        } else {
+          throw new Error('Format file tidak valid. Pastikan file adalah ekspor SplitBill Pro.');
+        }
+
+        const existingBillIds = new Set(savedBills.map((bill) => bill.id));
+        const existingMemberIds = new Set<string>();
+        const existingItemIds = new Set<string>();
+        savedBills.forEach((bill) => {
+          const stored = localStorage.getItem(`${LOCAL_STORAGE_DETAILS_PREFIX}${bill.id}`);
+          if (stored) {
+            try {
+              const details = JSON.parse(stored);
+              details.members?.forEach((member: Member) => existingMemberIds.add(member.id));
+              details.items?.forEach((item: BillItem) => existingItemIds.add(item.id));
+            } catch {
+              // ignore invalid detail items
+            }
+          }
+        });
+
+        const newSavedBills = [...savedBills];
+
+        importedBills.forEach((incomingBill) => {
+          const originalId = incomingBill.id;
+          const duplicate = existingBillIds.has(incomingBill.id);
+          const targetId = duplicate ? generateUUID() : incomingBill.id;
+          if (duplicate) {
+            incomingBill = { ...incomingBill, id: targetId, title: `${incomingBill.title} (copy)` };
+          }
+
+          const details = importedDetails[originalId] || { members: [], items: [] };
+          const importedMembers = details.members.map((member) => {
+            const updatedId = existingMemberIds.has(member.id) ? generateUUID() : member.id;
+            existingMemberIds.add(updatedId);
+            return { ...member, id: updatedId, bill_id: targetId };
+          });
+          const importedItems = details.items.map((item) => {
+            const updatedId = existingItemIds.has(item.id) ? generateUUID() : item.id;
+            existingItemIds.add(updatedId);
+            return { ...item, id: updatedId, bill_id: targetId };
+          });
+
+          newSavedBills.push({ ...incomingBill, id: targetId });
+          localStorage.setItem(`${LOCAL_STORAGE_DETAILS_PREFIX}${targetId}`, JSON.stringify({ members: importedMembers, items: importedItems }));
+          existingBillIds.add(targetId);
+        });
+
+        localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(newSavedBills));
+        setSavedBills(newSavedBills);
+        showToast('Data tagihan berhasil diimpor.', 'success');
+      } catch (error: any) {
+        console.error(error);
+        showToast(error?.message || 'Gagal mengimpor data. Periksa format file JSON.', 'error');
+      }
+    };
+    reader.readAsText(file);
+    if (e.target) e.target.value = '';
+  };
+
+  const handleResetAllData = () => {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus semua data lokal? Tindakan ini tidak dapat dibatalkan.')) return;
+    const billsToRemove = savedBills.map((bill) => `${LOCAL_STORAGE_DETAILS_PREFIX}${bill.id}`);
+    billsToRemove.forEach((key) => localStorage.removeItem(key));
+    localStorage.removeItem(LOCAL_STORAGE_BILLS_KEY);
+    setSavedBills([]);
+    initNewBill();
+    showToast('Semua data lokal berhasil direset.', 'success');
+  };
+
   // Inisialisasi State Tagihan Baru
   const initNewBill = () => {
     const newId = generateUUID();
@@ -102,7 +265,7 @@ function App() {
 
   // Fallback Local Storage
   const loadBillsFromLocalStorage = () => {
-    const local = localStorage.getItem('splitbill_pro_bills');
+    const local = localStorage.getItem(LOCAL_STORAGE_BILLS_KEY);
     if (local) {
       try {
         setSavedBills(JSON.parse(local));
@@ -126,7 +289,7 @@ function App() {
     }
 
     // Load dari LocalStorage detail
-    const detailsLocal = localStorage.getItem(`splitbill_pro_details_${id}`);
+    const detailsLocal = localStorage.getItem(`${LOCAL_STORAGE_DETAILS_PREFIX}${id}`);
     if (detailsLocal) {
       try {
         const details = JSON.parse(detailsLocal);
@@ -173,9 +336,9 @@ function App() {
     };
 
     const updatedBills = [...savedBills.filter(b => b.id !== billId), newBillMeta];
-    localStorage.setItem('splitbill_pro_bills', JSON.stringify(updatedBills));
-    localStorage.setItem(
-      `splitbill_pro_details_${billId}`, 
+localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
+      localStorage.setItem(
+        `${LOCAL_STORAGE_DETAILS_PREFIX}${billId}`, 
       JSON.stringify({ members, items })
     );
 
@@ -194,8 +357,8 @@ function App() {
     setIsLoading(true);
     // Hapus dari local storage
     const updated = savedBills.filter(b => b.id !== id);
-    localStorage.setItem('splitbill_pro_bills', JSON.stringify(updated));
-    localStorage.removeItem(`splitbill_pro_details_${id}`);
+    localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updated));
+    localStorage.removeItem(`${LOCAL_STORAGE_DETAILS_PREFIX}${id}`);
     setSavedBills(updated);
     showToast('Tagihan lokal berhasil dihapus.', 'success');
     if (billId === id) initNewBill();
@@ -419,6 +582,16 @@ function App() {
               Data tagihan disimpan di browser ini dan hanya tersedia di perangkat yang sama.
             </div>
           </div>
+
+          <div className="mt-4 space-y-2">
+            <button
+              onClick={handleResetAllData}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 text-xs font-semibold text-red-300 bg-slate-900 border border-red-500/20 rounded-2xl hover:bg-red-500/10 transition-all"
+              type="button"
+            >
+              <RefreshCcw size={14} /> Reset Semua Data Lokal
+            </button>
+          </div>
         </section>
 
         {/* Panel Kanan: Bill Form & Calculators (3/4 Width) */}
@@ -448,18 +621,51 @@ function App() {
               </div>
 
               {/* Tombol Simpan */}
-              <button 
-                onClick={handleSaveBill}
-                disabled={isSaving}
-                className="w-full md:w-auto px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 disabled:opacity-50 text-white rounded-xl font-semibold text-sm transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2 active:scale-[0.98]"
-              >
-                {isSaving ? (
-                  <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                ) : (
-                  <Save size={16} />
-                )}
-                <span>Simpan Tagihan</span>
-              </button>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 w-full">
+                <button 
+                  onClick={handleSaveBill}
+                  disabled={isSaving}
+                  className="w-full md:w-auto px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 disabled:opacity-50 text-white rounded-xl font-semibold text-sm transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2 active:scale-[0.98]"
+                >
+                  {isSaving ? (
+                    <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                  ) : (
+                    <Save size={16} />
+                  )}
+                  <span>Simpan Tagihan</span>
+                </button>
+
+                <div className="flex flex-wrap gap-2 justify-end">
+                  <button
+                    onClick={handleExportCurrentBill}
+                    className="px-4 py-2 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-all flex items-center gap-2"
+                    type="button"
+                  >
+                    <Download size={14} /> Ekspor Tagihan
+                  </button>
+                  <button
+                    onClick={handleExportAllBills}
+                    className="px-4 py-2 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-all flex items-center gap-2"
+                    type="button"
+                  >
+                    <Download size={14} /> Ekspor Semua
+                  </button>
+                  <button
+                    onClick={handleOpenImportDialog}
+                    className="px-4 py-2 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-all flex items-center gap-2"
+                    type="button"
+                  >
+                    <Upload size={14} /> Impor
+                  </button>
+                </div>
+                <input
+                  ref={importFileInputRef}
+                  type="file"
+                  accept="application/json"
+                  onChange={handleImportBillFile}
+                  className="hidden"
+                />
+              </div>
             </div>
 
             {/* Input Pajak / Service Charge */}
