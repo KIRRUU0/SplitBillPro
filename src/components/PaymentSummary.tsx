@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Wallet, Info, ChevronDown, ChevronUp, Printer } from 'lucide-react';
+import { Wallet, Info, ChevronDown, ChevronUp, Printer, AlertTriangle } from 'lucide-react';
 import type { Member, BillItem } from '../types';
 import { formatRupiah, calculateTaxShare, calculateMemberTotal } from '../utils/mathUtils';
 
@@ -181,7 +181,7 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
             <Wallet size={20} />
           </div>
           <div>
-            <h3 className="font-semibold text-lg text-slate-100">Ringkasan Pembagian Tagihan</h3>
+            <h3 className="font-semibold text-lg text-slate-100">Langkah 6: Ringkasan Pembayaran</h3>
             <p className="text-xs text-slate-400">Rincian biaya per orang yang harus dibayarkan</p>
           </div>
         </div>
@@ -229,6 +229,29 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
           <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Total Pembayaran</span>
           <p className="text-xl font-extrabold text-emerald-450 text-emerald-400 mt-2">{formatRupiah(grandTotalBill)}</p>
         </div>
+      </div>
+
+      {/* Alert Warning Validasi */}
+      <div className="space-y-2">
+        {!payerId && members.length > 0 && (
+          <div className="p-3 bg-amber-500/10 border border-amber-500/30 text-amber-300 rounded-xl flex items-start gap-2.5 text-xs">
+            <AlertTriangle size={16} className="text-amber-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <span className="font-semibold block mb-0.5">Pembayar Belum Ditentukan!</span>
+              Silakan pilih pembayar di <strong>Langkah 2: Informasi Pembayaran</strong> agar info penagihan dicetak lengkap.
+            </div>
+          </div>
+        )}
+
+        {items.length > 0 && items.some(item => !item.assigned_to_member_ids || item.assigned_to_member_ids.length === 0) && (
+          <div className="p-3 bg-amber-500/10 border border-amber-500/30 text-amber-300 rounded-xl flex items-start gap-2.5 text-xs">
+            <AlertTriangle size={16} className="text-amber-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <span className="font-semibold block mb-0.5">Ada Item Belum Dialokasikan!</span>
+              Beberapa barang belanja belum didelegasikan kepada anggota di <strong>Langkah 4: Daftar & Alokasi Item</strong>.
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Breakdown per Orang */}

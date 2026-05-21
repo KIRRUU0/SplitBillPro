@@ -11,7 +11,8 @@ import {
   CheckCircle,
   FileText,
   CalendarDays,
-  RefreshCcw
+  RefreshCcw,
+  Wallet
 } from 'lucide-react';
 import type { Member, BillItem, Bill } from './types';
 import { MemberManager } from './components/MemberManager';
@@ -262,6 +263,17 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
 
   // Cetak & Simpan Otomatis lalu Buka Tagihan Baru
   const handlePrintBill = async () => {
+    if (members.length > 0 && !payerId) {
+      const confirmPrint = window.confirm('Peringatan: Anda belum memilih pembayar ("Bayar ke siapa"). Apakah Anda ingin tetap melanjutkan cetak tagihan?');
+      if (!confirmPrint) return;
+    }
+
+    const hasUnallocatedItems = items.length > 0 && items.some(item => !item.assigned_to_member_ids || item.assigned_to_member_ids.length === 0);
+    if (hasUnallocatedItems) {
+      const confirmPrint = window.confirm('Peringatan: Ada item belanjaan yang belum dialokasikan ke anggota. Apakah Anda ingin tetap melanjutkan cetak tagihan?');
+      if (!confirmPrint) return;
+    }
+
     await handleSaveBill();
     setTimeout(() => {
       window.print();
@@ -299,6 +311,9 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
 
   const handleRemoveMember = (id: string) => {
     setMembers(prev => prev.filter(m => m.id !== id));
+    if (payerId === id) {
+      setPayerId('');
+    }
     // Reset alokasi item jika member ini dihapus
     setItems(prev => prev.map(item => ({
       ...item,
@@ -530,7 +545,7 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
         <section className="lg:col-span-3 space-y-6">
           
           {/* Header Konfigurasi Bill Aktif */}
-          <div className="no-print bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 space-y-4">
+          <div className="no-print bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               {/* Judul & Tanggal Tagihan */}
               <div className="flex-grow space-y-2">
@@ -553,7 +568,7 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
               </div>
 
               {/* Tombol Simpan */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 w-full">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 w-full md:w-auto">
                 <button 
                   onClick={handleSaveBill}
                   disabled={isSaving}
@@ -566,121 +581,14 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
                   )}
                   <span>Simpan Tagihan</span>
                 </button>
-
               </div>
             </div>
-
-            {/* Payment Routing: Who pays and method */}
-            <div className="no-print grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-              <div>
-                <label className="text-xs text-slate-400">Bayar ke siapa</label>
-                <select
-                  value={payerId}
-                  onChange={(e) => setPayerId(e.target.value)}
-                  className="w-full mt-1 bg-slate-950/40 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100"
-                >
-                  <option value="">Pilih nama</option>
-                  {members.map(m => (
-                    <option key={m.id} value={m.id}>{m.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs text-slate-400">Metode Pembayaran</label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Tunai / Transfer BCA"
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="w-full mt-1 bg-slate-950/40 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100"
-                />
-              </div>
-            </div>
-
-            {/* Input Pajak / Service Charge */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-800/50">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  Pajak / Service Charge (Bagi Rata)
-                </label>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setTaxInputType('nominal');
-                      setTaxInputValue(0);
-                    }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                      taxInputType === 'nominal'
-                        ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400'
-                        : 'bg-slate-950/40 border-slate-800 text-slate-400'
-                    }`}
-                  >
-                    Nominal (Rp)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setTaxInputType('percentage');
-                      setTaxInputValue(0);
-                    }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                      taxInputType === 'percentage'
-                        ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400'
-                        : 'bg-slate-950/40 border-slate-800 text-slate-400'
-                    }`}
-                  >
-                    Persentase (%)
-                  </button>
-                </div>
-              </div>
-
-              <div className="relative flex items-end">
-                {taxInputType === 'nominal' ? (
-                  <>
-                    <span className="absolute left-3.5 bottom-3 text-slate-400 text-sm font-semibold">Rp</span>
-                    <input 
-                      type="text" 
-                      value={taxInputValue ? formatInputRupiah(taxInputValue) : ''}
-                      onChange={(e) => setTaxInputValue(parseRupiahToNumber(e.target.value))}
-                      placeholder="0"
-                      className="w-full bg-slate-950/40 border border-slate-800 focus:border-indigo-500 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-700 focus:outline-none transition-colors"
-                    />
-                  </>
-                ) : (
-                  <>
-                    <input 
-                      type="number" 
-                      value={taxInputValue || ''}
-                      onChange={(e) => setTaxInputValue(parseFloat(e.target.value) || 0)}
-                      placeholder="0"
-                      className="w-full bg-slate-950/40 border border-slate-800 focus:border-indigo-500 rounded-xl pl-4 pr-10 py-2.5 text-sm text-slate-100 placeholder-slate-700 focus:outline-none transition-colors"
-                    />
-                    <span className="absolute right-3.5 bottom-3 text-slate-400 text-sm font-semibold">%</span>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Transparansi Pajak Share */}
-            {members.length > 0 && (
-              <div className="bg-indigo-950/10 border border-indigo-950/40 rounded-xl p-3 flex items-center justify-between text-xs text-indigo-300">
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle size={14} className="text-indigo-400" />
-                  Pajak Terbagi Rata:
-                </span>
-                <span>
-                  <strong>{formatRupiah(totalTax)}</strong> / {members.length} orang = <strong>{formatRupiah(calculateTaxShare(totalTax, members.length))} per orang</strong>
-                </span>
-              </div>
-            )}
           </div>
 
-          {/* Grid Interaksi (Kiri: Members + OCR, Kanan: Items + Ringkasan) */}
+          {/* Grid Interaksi (Kiri: Members + Payment info + OCR, Kanan: Items + Tax config + Ringkasan) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            {/* Column 1: Anggota & OCR */}
+            {/* Column 1: Anggota, Info Pembayaran, OCR */}
             <div className="no-print space-y-6">
               <MemberManager 
                 members={members} 
@@ -688,12 +596,59 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
                 onRemoveMember={handleRemoveMember}
               />
 
+              {/* Card Langkah 2: Informasi Pembayaran */}
+              <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl p-6 border border-slate-700/60 shadow-xl space-y-4">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400">
+                    <Wallet size={20} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg text-slate-100">Langkah 2: Informasi Pembayaran</h3>
+                    <p className="text-xs text-slate-400">Tentukan siapa yang membayar tagihan & metode transfernya.</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Bayar ke siapa</label>
+                    <select
+                      value={payerId}
+                      onChange={(e) => setPayerId(e.target.value)}
+                      disabled={members.length === 0}
+                      className="w-full mt-1.5 bg-slate-900/60 border border-slate-700 focus:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl px-3 py-2.5 text-sm text-slate-100 focus:outline-none transition-colors"
+                    >
+                      {members.length === 0 ? (
+                        <option value="">Tambahkan anggota terlebih dahulu...</option>
+                      ) : (
+                        <>
+                          <option value="">Pilih nama pembayar</option>
+                          {members.map(m => (
+                            <option key={m.id} value={m.id}>{m.name}</option>
+                          ))}
+                        </>
+                      )}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Metode Pembayaran</label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: Tunai / Transfer BCA"
+                      value={paymentMethod}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="w-full mt-1.5 bg-slate-900/60 border border-slate-700 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none transition-colors"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <ReceiptScanner 
                 onItemsScanned={handleItemsScanned}
               />
             </div>
 
-            {/* Column 2: Items & Summary */}
+            {/* Column 2: Items, Pajak, Summary */}
             <div className="space-y-6">
               <ItemManager 
                 items={items}
@@ -702,6 +657,96 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
                 onRemoveItem={handleRemoveItem}
                 onAssignItem={handleAssignItem}
               />
+
+              {/* Card Langkah 5: Pajak & Biaya Tambahan */}
+              <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl p-6 border border-slate-700/60 shadow-xl space-y-4">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400">
+                    <CheckCircle size={20} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg text-slate-100">Langkah 5: Pajak & Biaya Tambahan</h3>
+                    <p className="text-xs text-slate-400">Masukkan nilai pajak atau service charge tambahan jika ada.</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      Mode Perhitungan
+                    </label>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTaxInputType('nominal');
+                          setTaxInputValue(0);
+                        }}
+                        className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                          taxInputType === 'nominal'
+                            ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400'
+                            : 'bg-slate-900/60 border-slate-700 text-slate-400'
+                        }`}
+                      >
+                        Nominal (Rp)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTaxInputType('percentage');
+                          setTaxInputValue(0);
+                        }}
+                        className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                          taxInputType === 'percentage'
+                            ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400'
+                            : 'bg-slate-900/60 border-slate-700 text-slate-400'
+                        }`}
+                      >
+                        Persentase (%)
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="relative flex items-end">
+                    {taxInputType === 'nominal' ? (
+                      <>
+                        <span className="absolute left-3.5 bottom-3.5 text-slate-400 text-sm font-semibold">Rp</span>
+                        <input 
+                          type="text" 
+                          value={taxInputValue ? formatInputRupiah(taxInputValue) : ''}
+                          onChange={(e) => setTaxInputValue(parseRupiahToNumber(e.target.value))}
+                          placeholder="0"
+                          className="w-full bg-slate-900/60 border border-slate-700 focus:border-indigo-500 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none transition-colors"
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <input 
+                          type="number" 
+                          value={taxInputValue || ''}
+                          onChange={(e) => setTaxInputValue(parseFloat(e.target.value) || 0)}
+                          placeholder="0"
+                          className="w-full bg-slate-900/60 border border-slate-700 focus:border-indigo-500 rounded-xl pl-4 pr-10 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none transition-colors"
+                        />
+                        <span className="absolute right-3.5 bottom-3.5 text-slate-400 text-sm font-semibold">%</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Transparansi Pajak Share */}
+                {members.length > 0 && (
+                  <div className="bg-indigo-950/20 border border-indigo-900/40 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-indigo-300 gap-2">
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle size={14} className="text-indigo-400" />
+                      Pajak Terbagi Rata:
+                    </span>
+                    <span>
+                      <strong>{formatRupiah(totalTax)}</strong> / {members.length} orang = <strong>{formatRupiah(calculateTaxShare(totalTax, members.length))} per orang</strong>
+                    </span>
+                  </div>
+                )}
+              </div>
 
               <div>
                 <PaymentSummary 
@@ -714,11 +759,8 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
                   printMode={false}
                   onPrint={handlePrintBill}
                 />
-
-
               </div>
             </div>
-
           </div>
 
         </section>
