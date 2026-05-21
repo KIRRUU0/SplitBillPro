@@ -52,11 +52,35 @@ function App() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
   const [showTutorial, setShowTutorial] = useState<boolean>(false);
+  const [tutorialStep, setTutorialStep] = useState<number>(0);
   const importFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const LOCAL_STORAGE_BILLS_KEY = 'splitbill_pro_bills';
   const LOCAL_STORAGE_DETAILS_PREFIX = 'splitbill_pro_details_';
   const LOCAL_STORAGE_TUTORIAL_KEY = 'splitbill_pro_seen_tutorial';
+
+  const tutorialSteps = [
+    {
+      title: 'Tambah Anggota',
+      description: 'Masukkan semua orang yang akan ikut membayar. Ini adalah dasar pembagian biaya.',
+      tip: 'Gunakan panel Anggota di kiri untuk menambahkan nama teman Anda.'
+    },
+    {
+      title: 'Tambah Item',
+      description: 'Masukkan barang atau makanan yang dibeli. Untuk item yang dibagi, pilih lebih dari satu anggota.',
+      tip: 'Setiap item bisa dibuat shared dengan memilih beberapa anggota di daftar item.'
+    },
+    {
+      title: 'Atur Pajak / Service Charge',
+      description: 'Masukkan nilai pajak atau service charge, lalu pajak akan dibagi rata ke anggota.',
+      tip: 'Pilih mode Nominal atau Persentase sesuai jenis biaya tambahan yang Anda miliki.'
+    },
+    {
+      title: 'Simpan & Ekspor',
+      description: 'Simpan tagihan untuk disimpan secara lokal atau ekspor ke JSON sebagai cadangan.',
+      tip: 'Gunakan tombol Ekspor untuk menyimpan salinan file di perangkat Anda.'
+    }
+  ];
 
   useEffect(() => {
     // Inisialisasi tagihan baru saat start
@@ -98,10 +122,20 @@ function App() {
   const handleCloseTutorial = () => {
     localStorage.setItem(LOCAL_STORAGE_TUTORIAL_KEY, 'true');
     setShowTutorial(false);
+    setTutorialStep(0);
   };
 
   const handleOpenTutorial = () => {
     setShowTutorial(true);
+    setTutorialStep(0);
+  };
+
+  const handleNextTutorialStep = () => {
+    setTutorialStep((prev) => Math.min(prev + 1, tutorialSteps.length - 1));
+  };
+
+  const handlePreviousTutorialStep = () => {
+    setTutorialStep((prev) => Math.max(prev - 1, 0));
   };
 
   const downloadJSON = (filename: string, data: unknown) => {
@@ -520,19 +554,19 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
         <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-5 shadow-xl">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.24em] text-slate-500 font-semibold">Panduan Cepat</p>
+              <p className="text-xs uppercase tracking-[0.24em] text-slate-500 font-semibold">Panduan Interaktif</p>
               <h2 className="mt-2 text-lg sm:text-xl font-bold text-slate-100">Cara menggunakan SplitBill Pro</h2>
             </div>
             <div className="flex flex-wrap gap-2 items-center">
               <div className="rounded-2xl bg-slate-950/40 border border-slate-800 px-4 py-3 text-xs text-slate-400">
-                Isi langkahnya secara berurutan agar hasil pembagian lebih jelas.
+                Ikuti tutorial agar setiap langkah lebih mudah.
               </div>
               <button
                 onClick={handleOpenTutorial}
                 className="px-4 py-2 rounded-2xl bg-indigo-500 text-white text-xs font-semibold hover:bg-indigo-600 transition-all"
                 type="button"
               >
-                Lihat Tutorial Lagi
+                Buka Tutorial Langsung
               </button>
             </div>
           </div>
@@ -837,7 +871,8 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-indigo-400 font-semibold">Tutorial SplitBill Pro</p>
-                <h2 className="mt-3 text-2xl font-bold text-white">Cara cepat menggunakan aplikasi</h2>
+                <h2 className="mt-3 text-2xl font-bold text-white">Panduan Langkah demi Langkah</h2>
+                <p className="mt-1 text-xs text-slate-400">Ikuti wizard berikut untuk menggunakan SplitBill Pro secara langsung.</p>
               </div>
               <button
                 onClick={handleCloseTutorial}
@@ -848,32 +883,44 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
               </button>
             </div>
 
-            <div className="space-y-5 text-sm leading-6 text-slate-300">
-              <div className="rounded-2xl bg-slate-950/80 border border-slate-800 p-4">
-                <h3 className="font-semibold text-slate-100">Langkah 1: Tambah Anggota</h3>
-                <p>Masukkan nama semua orang yang akan ikut membayar tagihan.</p>
+            <div className="rounded-3xl bg-slate-950/80 border border-slate-800 p-6">
+              <div className="mb-4 text-sm text-slate-300">
+                <p className="font-semibold text-slate-100">Langkah {tutorialStep + 1} dari {tutorialSteps.length}</p>
               </div>
-              <div className="rounded-2xl bg-slate-950/80 border border-slate-800 p-4">
-                <h3 className="font-semibold text-slate-100">Langkah 2: Tambah Item</h3>
-                <p>Tambahkan barang belanja. Untuk satu barang yang dibagi, pilih lebih dari satu anggota.</p>
-              </div>
-              <div className="rounded-2xl bg-slate-950/80 border border-slate-800 p-4">
-                <h3 className="font-semibold text-slate-100">Langkah 3: Atur Pajak</h3>
-                <p>Masukkan nilai pajak atau service charge, lalu pajak akan otomatis dibagi rata ke setiap anggota.</p>
-              </div>
-              <div className="rounded-2xl bg-slate-950/80 border border-slate-800 p-4">
-                <h3 className="font-semibold text-slate-100">Langkah 4: Simpan atau Ekspor</h3>
-                <p>Simpan tagihan di browser ini atau ekspor ke file JSON untuk backup dan pemulihan.</p>
+              <div className="space-y-4">
+                <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5">
+                  <h3 className="text-lg font-semibold text-white">{tutorialSteps[tutorialStep].title}</h3>
+                  <p className="mt-3 text-slate-300">{tutorialSteps[tutorialStep].description}</p>
+                  <p className="mt-3 text-sm text-slate-400">{tutorialSteps[tutorialStep].tip}</p>
+                </div>
               </div>
             </div>
 
-            <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:justify-end">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
               <button
-                onClick={handleCloseTutorial}
-                className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-indigo-500 text-white font-semibold hover:bg-indigo-600 transition-all"
+                onClick={handlePreviousTutorialStep}
+                disabled={tutorialStep === 0}
+                className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-slate-800 border border-slate-700 text-slate-300 disabled:opacity-50 hover:bg-slate-700 transition-all"
+                type="button"
               >
-                Saya sudah mengerti
+                Sebelumnya
               </button>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <button
+                  onClick={handleCloseTutorial}
+                  className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-transparent border border-slate-700 text-slate-300 hover:bg-slate-800 transition-all"
+                  type="button"
+                >
+                  Tutup
+                </button>
+                <button
+                  onClick={tutorialStep === tutorialSteps.length - 1 ? handleCloseTutorial : handleNextTutorialStep}
+                  className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-indigo-500 text-white font-semibold hover:bg-indigo-600 transition-all"
+                  type="button"
+                >
+                  {tutorialStep === tutorialSteps.length - 1 ? 'Selesai' : 'Berikutnya'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
