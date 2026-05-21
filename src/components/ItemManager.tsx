@@ -58,7 +58,7 @@ export const ItemManager: React.FC<ItemManagerProps> = ({
             <ShoppingBag size={20} />
           </div>
           <div>
-            <h3 className="font-semibold text-lg text-slate-100">Langkah 4: Tambah & Alokasikan Item ({items.length})</h3>
+            <h3 className="font-semibold text-lg text-slate-100">Tambah & Alokasikan Item ({items.length})</h3>
             <p className="text-xs text-slate-400">Tambahkan barang dan pilih satu atau lebih anggota untuk berbagi biaya item.</p>
           </div>
         </div>

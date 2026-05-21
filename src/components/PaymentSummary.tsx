@@ -181,7 +181,7 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
             <Wallet size={20} />
           </div>
           <div>
-            <h3 className="font-semibold text-lg text-slate-100">Langkah 6: Ringkasan Pembayaran</h3>
+            <h3 className="font-semibold text-lg text-slate-100">Ringkasan Pembayaran</h3>
             <p className="text-xs text-slate-400">Rincian biaya per orang yang harus dibayarkan</p>
           </div>
         </div>
@@ -238,7 +238,7 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
             <AlertTriangle size={16} className="text-amber-400 flex-shrink-0 mt-0.5" />
             <div>
               <span className="font-semibold block mb-0.5">Pembayar Belum Ditentukan!</span>
-              Silakan pilih pembayar di <strong>Langkah 2: Informasi Pembayaran</strong> agar info penagihan dicetak lengkap.
+              Silakan pilih pembayar di <strong>Informasi Pembayaran</strong> agar info penagihan dicetak lengkap.
             </div>
           </div>
         )}
@@ -248,7 +248,7 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
             <AlertTriangle size={16} className="text-amber-400 flex-shrink-0 mt-0.5" />
             <div>
               <span className="font-semibold block mb-0.5">Ada Item Belum Dialokasikan!</span>
-              Beberapa barang belanja belum didelegasikan kepada anggota di <strong>Langkah 4: Daftar & Alokasi Item</strong>.
+              Beberapa barang belanja belum didelegasikan kepada anggota di <strong>Daftar & Alokasi Item</strong>.
             </div>
           </div>
         )}
