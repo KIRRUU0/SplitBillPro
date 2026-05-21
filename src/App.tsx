@@ -260,6 +260,15 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
     setIsSaving(false);
   };
 
+  // Cetak & Simpan Otomatis lalu Buka Tagihan Baru
+  const handlePrintBill = async () => {
+    await handleSaveBill();
+    setTimeout(() => {
+      window.print();
+      initNewBill();
+    }, 250);
+  };
+
   // Hapus Tagihan
   const handleDeleteBill = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Mencegah load bill detail saat klik hapus
@@ -703,7 +712,7 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
                   payerId={payerId}
                   paymentMethod={paymentMethod}
                   printMode={false}
-                  onSaveBill={handleSaveBill}
+                  onPrint={handlePrintBill}
                 />
 
 
@@ -792,7 +801,7 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
           payerId={payerId}
           paymentMethod={paymentMethod}
           printMode={true}
-          onSaveBill={handleSaveBill}
+          onPrint={handlePrintBill}
         />
       </div>
     </div>

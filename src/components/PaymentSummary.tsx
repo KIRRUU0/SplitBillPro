@@ -11,7 +11,7 @@ interface PaymentSummaryProps {
   payerId?: string;
   paymentMethod?: string;
   printMode?: boolean; // when true show compact print output with breakdown
-  onSaveBill?: () => Promise<void> | void;
+  onPrint?: () => Promise<void> | void;
 }
 
 export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
@@ -22,7 +22,7 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
   payerId,
   paymentMethod,
   printMode = false,
-  onSaveBill
+  onPrint
 }) => {
   const [expandedMembers, setExpandedMembers] = useState<Record<string, boolean>>({});
 
@@ -188,12 +188,9 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
 
         <button
           onClick={async () => {
-            if (onSaveBill) {
-              await onSaveBill();
+            if (onPrint) {
+              await onPrint();
             }
-            setTimeout(() => {
-              window.print();
-            }, 150);
           }}
           disabled={members.length === 0}
           className="no-print flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-semibold transition-all shadow-lg shadow-indigo-500/20 active:scale-[0.98]"
