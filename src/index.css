@@ -156,32 +156,80 @@ body {
 
 /* Success Total Box (Sage Green instead of Emerald) */
 .from-emerald-500\/10,
-.to-teal-500\/5 {
+.to-teal-500\/5,
+.bg-emerald-500\/5,
+.bg-emerald-500\/10 {
   background: rgba(143, 158, 139, 0.15) !important;
 }
-.border-emerald-500\/20 {
+.border-emerald-500\/20,
+.border-emerald-500\/30 {
   border-color: rgba(143, 158, 139, 0.3) !important;
 }
+.text-emerald-300,
 .text-emerald-400,
-.text-emerald-450 {
+.text-emerald-400\/90,
+.text-emerald-450,
+.text-emerald-500,
+.text-emerald-600,
+.text-emerald-700,
+.text-emerald-800 {
   color: #3E503B !important; /* Sage Darker */
+}
+.bg-emerald-500 {
+  background-color: #3E503B !important;
+  color: white !important;
+}
+.hover\:bg-emerald-600:hover {
+  background-color: #2F3D2C !important;
+  color: white !important;
+}
+
+/* Amber / Warning Alerts (Bronze/Gold instead of bright yellow) */
+.bg-amber-500\/10 {
+  background-color: rgba(133, 77, 14, 0.08) !important;
+}
+.border-amber-500\/30 {
+  border-color: rgba(133, 77, 14, 0.25) !important;
+}
+.text-amber-300,
+.text-amber-400 {
+  color: #854d0e !important; /* Amber-800 */
+}
+
+/* Red / Error Alerts & Elements */
+.bg-red-500\/10 {
+  background-color: rgba(185, 28, 28, 0.08) !important;
+}
+.border-red-500\/20,
+.border-red-500\/30 {
+  border-color: rgba(185, 28, 28, 0.25) !important;
+}
+.text-red-300,
+.text-red-400,
+.text-red-500 {
+  color: #b91c1c !important; /* Red-700 */
+}
+.hover\:text-red-400:hover,
+.hover\:text-red-500:hover {
+  color: #991b1b !important;
+}
+.bg-red-500 {
+  background-color: #b91c1c !important;
+  color: white !important;
+}
+.hover\:bg-red-600:hover {
+  background-color: #991b1b !important;
+  color: white !important;
 }
 
 /* Brand Aksen Warna Lain (Orange Saweria & Merah Hapus/Reset) */
 .text-orange-400,
 .text-orange-500 {
-  color: #c2410c !important;
+  color: #9a3412 !important; /* Dark Orange/Rust */
 }
 .hover\:text-orange-300:hover,
 .hover\:text-orange-400:hover {
-  color: #9a3412 !important;
-}
-.text-red-300,
-.text-red-400 {
-  color: #b91c1c !important;
-}
-.hover\:text-red-400:hover {
-  color: #991b1b !important;
+  color: #7c2d12 !important;
 }
 
 /* Dropdowns, Inputs & Form elements */
