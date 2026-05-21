@@ -429,7 +429,7 @@ export const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onItemsScanned }
               <span>Jumlah Item: <strong>{parsedItems.length}</strong></span>
             </div>
             {detectedTax > 0 && (
-              <div className="bg-indigo-550/10 bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-3 text-xs text-indigo-300 flex justify-between items-center mt-3">
+              <div className="bg-indigo-550/10 bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-3 text-xs text-indigo-450 font-medium flex justify-between items-center mt-3">
                 <span>Pajak / PB1 Terdeteksi: <strong>{formatRupiah(detectedTax)}</strong></span>
                 <span className="text-[10px] text-slate-400 italic">Otomatis dialihkan ke Pajak Global</span>
               </div>

@@ -762,9 +762,9 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
 
                 {/* Transparansi Pajak Share */}
                 {members.length > 0 && (
-                  <div className="bg-indigo-950/20 border border-indigo-900/40 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-indigo-300 gap-2">
+                  <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-indigo-450 font-medium gap-2">
                     <span className="flex items-center gap-1.5">
-                      <CheckCircle size={14} className="text-indigo-400" />
+                      <CheckCircle size={14} className="text-indigo-450" />
                       Pajak Terbagi Rata:
                     </span>
                     <span>
