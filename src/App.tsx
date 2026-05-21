@@ -404,13 +404,6 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
               <div className="rounded-2xl bg-slate-950/40 border border-slate-800 px-4 py-3 text-xs text-slate-400">
                 Ikuti tutorial agar setiap langkah lebih mudah.
               </div>
-              <button
-                onClick={handleOpenTutorial}
-                className="px-4 py-2 rounded-2xl bg-indigo-500 text-white text-xs font-semibold hover:bg-indigo-600 transition-all"
-                type="button"
-              >
-                Buka Tutorial Langsung
-              </button>
             </div>
           </div>
 
