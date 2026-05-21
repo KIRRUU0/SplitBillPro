@@ -48,78 +48,117 @@ export const PaymentSummary: React.FC<PaymentSummaryProps> = ({
 
   if (printMode) {
     return (
-      <div className="bg-white text-black p-6 rounded-none w-full">
-        <div className="text-center mb-4">
-          <h2 className="text-base font-extrabold">{billTitle || 'Rincian Tagihan'}</h2>
-          <p className="text-xs text-slate-600 mt-1">Dicetak pada: {new Date().toLocaleString('id-ID')}</p>
+      <div className="bg-white text-black p-6 rounded-none w-full" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <div className="text-center mb-5 pb-4" style={{ borderBottom: '2px solid #000' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '0.05em', margin: 0 }}>SPLITBILL PRO</h2>
+          <p style={{ fontSize: '14px', fontWeight: 700, marginTop: '4px' }}>{billTitle || 'Rincian Tagihan'}</p>
+          <p style={{ fontSize: '10px', color: '#666', marginTop: '4px' }}>Dicetak pada: {new Date().toLocaleString('id-ID')}</p>
         </div>
 
-        <div className="mt-4 text-sm space-y-2">
-          <div className="flex justify-between">
-            <span className="text-slate-700">Total Tagihan</span>
-            <strong>{formatRupiah(grandTotalBill)}</strong>
-          </div>
-
-          <div className="flex justify-between">
-            <span className="text-slate-700">Pembayar</span>
-            <span>{payer ? payer.name : '-'}</span>
-          </div>
-
-          <div className="flex justify-between">
-            <span className="text-slate-700">Metode</span>
-            <span>{paymentMethod || '-'}</span>
-          </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+          <span style={{ color: '#555' }}>Total Tagihan</span>
+          <strong>{formatRupiah(grandTotalBill)}</strong>
         </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+          <span style={{ color: '#555' }}>Pajak / Service (Bagi Rata)</span>
+          <span>{formatRupiah(totalTax)} ({members.length > 0 ? formatRupiah(taxShare) + ' / orang' : '-'})</span>
+        </div>
+        {payer && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+            <span style={{ color: '#555' }}>Pembayar</span>
+            <span>{payer.name}</span>
+          </div>
+        )}
+        {paymentMethod && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+            <span style={{ color: '#555' }}>Metode</span>
+            <span>{paymentMethod}</span>
+          </div>
+        )}
 
         {/* Rincian Pembagian per Anggota untuk Cetak */}
-        <div className="mt-6">
-          <h3 className="text-sm font-semibold mb-3">Rincian Pembagian</h3>
-          <div className="space-y-3 text-sm">
-            {members.map(member => {
-              const memberItems = getMemberItems(member.id);
-              const itemsTotal = getMemberItemsTotal(member.id);
-              const memberGrandTotal = calculateMemberTotal(itemsTotal, taxShare);
+        <div style={{ marginTop: '20px' }}>
+          <h3 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.1em', borderBottom: '1px solid #ccc', paddingBottom: '6px' }}>Rincian Pembagian Per Anggota</h3>
+          
+          {members.map((member, index) => {
+            const memberItems = getMemberItems(member.id);
+            const itemsTotal = getMemberItemsTotal(member.id);
+            const memberGrandTotal = calculateMemberTotal(itemsTotal, taxShare);
 
-              return (
-                <div key={member.id} className="border-b pb-2">
-                  <div className="flex justify-between mb-1 font-semibold">
-                    <span>{member.name}</span>
-                    <span>{formatRupiah(memberGrandTotal)}</span>
+            return (
+              <div 
+                key={member.id} 
+                style={{ 
+                  border: '1.5px solid #333', 
+                  borderRadius: '8px', 
+                  padding: '12px 14px', 
+                  marginBottom: '10px',
+                  background: index % 2 === 0 ? '#ffffff' : '#f8f9fa',
+                  pageBreakInside: 'avoid'
+                }}
+              >
+                {/* Header Nama Anggota */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', borderBottom: '1px solid #ddd', paddingBottom: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ 
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      width: '24px', height: '24px', borderRadius: '50%', 
+                      background: '#333', color: '#fff', fontSize: '10px', fontWeight: 800 
+                    }}>{index + 1}</span>
+                    <span style={{ fontSize: '14px', fontWeight: 700 }}>{member.name}</span>
                   </div>
-
-                  {memberItems.length === 0 ? (
-                    <div className="text-xs italic text-slate-600">Tidak ada item</div>
-                  ) : (
-                    <table className="w-full text-xs">
-                      <tbody>
-                        {memberItems.map(item => {
-                          const shareCount = item.assigned_to_member_ids?.length || 1;
-                          const itemShare = item.price / shareCount;
-                          return (
-                            <tr key={item.id} className="align-top">
-                              <td className="pr-2" style={{ width: '70%' }}>{item.item_name}{shareCount > 1 ? ` (dibagi ${shareCount})` : ''}</td>
-                              <td className="text-right">{formatRupiah(itemShare)}</td>
-                            </tr>
-                          );
-                        })}
-                        <tr className="font-semibold border-t pt-2">
-                          <td className="pt-2">Subtotal</td>
-                          <td className="text-right pt-2">{formatRupiah(itemsTotal)}</td>
-                        </tr>
-                        <tr>
-                          <td>Pajak Share</td>
-                          <td className="text-right">{formatRupiah(taxShare)}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  )}
+                  <span style={{ fontSize: '14px', fontWeight: 800 }}>{formatRupiah(memberGrandTotal)}</span>
                 </div>
-              );
-            })}
-          </div>
+
+                {memberItems.length === 0 ? (
+                  <div style={{ fontSize: '11px', fontStyle: 'italic', color: '#888' }}>Tidak ada item dialokasikan</div>
+                ) : (
+                  <table style={{ width: '100%', fontSize: '11px', borderCollapse: 'collapse' }}>
+                    <tbody>
+                      {memberItems.map(item => {
+                        const shareCount = item.assigned_to_member_ids?.length || 1;
+                        const itemShare = item.price / shareCount;
+                        return (
+                          <tr key={item.id}>
+                            <td style={{ padding: '3px 0', width: '70%' }}>
+                              {item.item_name}{shareCount > 1 ? ` (dibagi ${shareCount})` : ''}
+                            </td>
+                            <td style={{ padding: '3px 0', textAlign: 'right' }}>{formatRupiah(itemShare)}</td>
+                          </tr>
+                        );
+                      })}
+
+                      {/* Garis pemisah tebal sebelum subtotal */}
+                      <tr><td colSpan={2} style={{ borderTop: '1.5px solid #555', paddingTop: '4px' }}></td></tr>
+                      
+                      {/* Subtotal Item */}
+                      <tr style={{ fontWeight: 600 }}>
+                        <td style={{ padding: '2px 0' }}>Subtotal Item</td>
+                        <td style={{ padding: '2px 0', textAlign: 'right' }}>{formatRupiah(itemsTotal)}</td>
+                      </tr>
+                      
+                      {/* Pajak Share - sebelum total akhir */}
+                      <tr>
+                        <td style={{ padding: '2px 0', color: '#555' }}>Pajak Share ({formatRupiah(totalTax)} / {members.length})</td>
+                        <td style={{ padding: '2px 0', textAlign: 'right' }}>{formatRupiah(taxShare)}</td>
+                      </tr>
+
+                      {/* Total Akhir dengan garis tebal */}
+                      <tr style={{ fontWeight: 800 }}>
+                        <td style={{ padding: '4px 0', borderTop: '2px solid #000' }}>TOTAL</td>
+                        <td style={{ padding: '4px 0', borderTop: '2px solid #000', textAlign: 'right' }}>{formatRupiah(memberGrandTotal)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            );
+          })}
         </div>
 
-        <div className="mt-6 text-center text-xs text-slate-500">-- Akhir rincian cetak --</div>
+        <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '10px', color: '#999', borderTop: '1px solid #ddd', paddingTop: '10px' }}>
+          — Akhir rincian cetak • SplitBill Pro —
+        </div>
       </div>
     );
   }
