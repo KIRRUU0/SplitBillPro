@@ -361,7 +361,7 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
       )}
 
       {/* Main Header / Glassmorphism Navbar */}
-      <header className="no-print sticky top-0 z-40 w-full bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80 py-4 px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+      <header className="no-print sticky top-0 z-40 w-full bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80 py-4 px-6 flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
             <Sparkles className="text-white" size={20} />
