@@ -21,6 +21,7 @@ export const ItemManager: React.FC<ItemManagerProps> = ({
   const [itemName, setItemName] = useState<string>('');
   const [itemPrice, setItemPrice] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+  const [selectedMemberToAdd, setSelectedMemberToAdd] = useState<Record<string, string>>({});
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,32 +143,72 @@ export const ItemManager: React.FC<ItemManagerProps> = ({
                   <td className="py-2.5 px-4 font-medium text-slate-200">{item.item_name}</td>
                   <td className="py-2.5 px-4 font-semibold text-slate-300">{formatRupiah(item.price)}</td>
                   <td className="py-2.5 px-4">
-                    <select
-                      multiple
-                      value={item.assigned_to_member_ids || []}
-                      onChange={(e) => {
-                        const selected = Array.from(e.target.selectedOptions).map((option) => option.value);
-                        onAssignItem(item.id, selected);
-                      }}
-                      disabled={members.length === 0}
-                      className="w-full min-h-[3rem] bg-slate-800 border border-slate-700 rounded-lg py-1.5 px-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {members.length === 0 ? (
-                        <option value="">-- Tambah anggota dulu --</option>
-                      ) : (
-                        members.map(member => (
-                          <option key={member.id} value={member.id}>
-                            {member.name}
-                          </option>
-                        ))
-                      )}
-                    </select>
-                    <p className="mt-1 text-[10px] text-slate-500">Pilih satu atau lebih anggota agar harga item dibagi otomatis ketika dibagi bersama.</p>
-                    {item.assigned_to_member_ids && item.assigned_to_member_ids.length > 0 && (
-                      <p className="mt-1 text-[10px] text-slate-400">
-                        Dialokasikan ke: {members.filter((member) => item.assigned_to_member_ids.includes(member.id)).map((member) => member.name).join(', ')}
-                      </p>
-                    )}
+                    {(() => {
+                      const assignedMemberIds = item.assigned_to_member_ids || [];
+                      const availableMembers = members.filter(member => !assignedMemberIds.includes(member.id));
+                      const selectedValue = selectedMemberToAdd[item.id] || '';
+
+                      return (
+                        <div className="space-y-3">
+                          <div className="flex flex-wrap gap-2 mb-2">
+                            {assignedMemberIds.length > 0 ? (
+                              assignedMemberIds.map((memberId) => {
+                                const member = members.find((m) => m.id === memberId);
+                                if (!member) return null;
+                                return (
+                                  <span key={member.id} className="inline-flex items-center gap-2 rounded-full bg-slate-800/70 text-slate-200 px-3 py-1 text-[11px]">
+                                    {member.name}
+                                    <button
+                                      type="button"
+                                      onClick={() => onAssignItem(item.id, assignedMemberIds.filter((id) => id !== member.id))}
+                                      className="rounded-full border border-slate-700 p-0.5 text-slate-400 hover:text-red-400 hover:border-red-400 transition-colors"
+                                      aria-label={`Hapus ${member.name} dari item`}
+                                    >
+                                      ✕
+                                    </button>
+                                  </span>
+                                );
+                              })
+                            ) : (
+                              <p className="text-[10px] text-slate-500">Belum ada anggota terlibat pada item ini.</p>
+                            )}
+                          </div>
+
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <select
+                              value={selectedValue}
+                              onChange={(e) => setSelectedMemberToAdd((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                              disabled={members.length === 0 || availableMembers.length === 0}
+                              className="w-full bg-slate-800 border border-slate-700 rounded-xl py-2 px-3 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <option value="">Pilih anggota untuk tambah</option>
+                              {availableMembers.map((member) => (
+                                <option key={member.id} value={member.id}>
+                                  {member.name}
+                                </option>
+                              ))}
+                            </select>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (!selectedValue) return;
+                                onAssignItem(item.id, [...assignedMemberIds, selectedValue]);
+                                setSelectedMemberToAdd((prev) => ({ ...prev, [item.id]: '' }));
+                              }}
+                              disabled={!selectedValue || availableMembers.length === 0}
+                              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 text-white px-3 py-2 text-xs font-semibold hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            >
+                              <Plus size={14} /> Tambah
+                            </button>
+                          </div>
+
+                          {availableMembers.length === 0 && members.length > 0 && (
+                            <p className="text-[10px] text-slate-500">Semua anggota sudah ditambahkan pada item ini.</p>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className="py-2.5 px-4 text-center">
                     <button
