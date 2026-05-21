@@ -284,8 +284,8 @@ export const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onItemsScanned }
           <FileText size={20} />
         </div>
         <div>
-          <h3 className="font-semibold text-lg text-slate-100">Scan Struk Belanja (OCR)</h3>
-          <p className="text-xs text-slate-400">Unggah foto struk Anda untuk mendeteksi barang otomatis (Bahasa Indonesia)</p>
+          <h3 className="font-semibold text-lg text-slate-100">Langkah 2b: Scan Struk Belanja (OCR)</h3>
+          <p className="text-xs text-slate-400">Gunakan foto struk untuk mendeteksi item otomatis. Edit hasilnya sebelum konfirmasi.</p>
         </div>
       </div>
 

@@ -42,8 +42,8 @@ export const MemberManager: React.FC<MemberManagerProps> = ({
           <Users size={20} />
         </div>
         <div>
-          <h3 className="font-semibold text-lg text-slate-100">Anggota Grup ({members.length})</h3>
-          <p className="text-xs text-slate-400">Tambahkan orang yang akan masuk dalam pembagian tagihan</p>
+          <h3 className="font-semibold text-lg text-slate-100">Langkah 1: Tambah Anggota ({members.length})</h3>
+          <p className="text-xs text-slate-400">Masukkan nama semua orang yang ikut membayar tagihan ini.</p>
         </div>
       </div>
 

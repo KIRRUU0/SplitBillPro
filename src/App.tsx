@@ -12,7 +12,6 @@ import {
   FileText,
   CalendarDays
 } from 'lucide-react';
-import { supabase, isSupabaseConfigured } from './supabaseClient';
 import type { Member, BillItem, Bill } from './types';
 import { MemberManager } from './components/MemberManager';
 import { ItemManager } from './components/ItemManager';
@@ -33,9 +32,6 @@ const generateUUID = (): string => {
 };
 
 function App() {
-  // Database Configuration Status
-  const [dbConnected, setDbConnected] = useState<boolean>(false);
-
   // States Utama Tagihan Aktif
   const [billId, setBillId] = useState<string>('');
   const [billTitle, setBillTitle] = useState<string>('Tagihan Baru');
@@ -53,16 +49,12 @@ function App() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
 
-  // Cek koneksi Supabase saat inisialisasi
   useEffect(() => {
-    const configured = isSupabaseConfigured();
-    setDbConnected(configured);
-    
     // Inisialisasi tagihan baru saat start
     initNewBill();
     
-    // Load daftar tagihan tersimpan
-    loadSavedBills(configured);
+    // Load daftar tagihan tersimpan dari localStorage
+    loadSavedBills();
   }, []);
 
   // Update totalTax jika taxInputValue atau item price berubah
@@ -102,25 +94,9 @@ function App() {
   };
 
   // Load Daftar Tagihan
-  const loadSavedBills = async (supabaseActive: boolean = dbConnected) => {
+  const loadSavedBills = () => {
     setIsLoading(true);
-    if (supabaseActive) {
-      try {
-        const { data, error } = await supabase
-          .from('bills')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        setSavedBills(data || []);
-      } catch (err) {
-        console.error('Error fetching bills from Supabase:', err);
-        showToast('Gagal memuat tagihan dari database. Menggunakan data lokal.', 'warning');
-        loadBillsFromLocalStorage();
-      }
-    } else {
-      loadBillsFromLocalStorage();
-    }
+    loadBillsFromLocalStorage();
     setIsLoading(false);
   };
 
@@ -149,62 +125,27 @@ function App() {
       return;
     }
 
-    if (dbConnected) {
+    // Load dari LocalStorage detail
+    const detailsLocal = localStorage.getItem(`splitbill_pro_details_${id}`);
+    if (detailsLocal) {
       try {
-        // Fetch members
-        const { data: membersData, error: memError } = await supabase
-          .from('members')
-          .select('*')
-          .eq('bill_id', id);
-
-        if (memError) throw memError;
-
-        // Fetch items
-        const { data: itemsData, error: itemsError } = await supabase
-          .from('bill_items')
-          .select('*')
-          .eq('bill_id', id);
-
-        if (itemsError) throw itemsError;
-
-        // Set States
+        const details = JSON.parse(detailsLocal);
         setBillId(id);
         setBillTitle(billMeta.title);
         setBillDate(billMeta.bill_date || new Date().toISOString().split('T')[0]);
         setTaxInputType('nominal');
-        setTaxInputValue(Number(billMeta.total_tax));
-        setTotalTax(Number(billMeta.total_tax));
-        setMembers(membersData || []);
-        setItems(itemsData || []);
+        setTaxInputValue(billMeta.total_tax);
+        setTotalTax(billMeta.total_tax);
+        setMembers(details.members || []);
+        setItems(details.items || []);
         setSelectedBillId(id);
-        showToast(`Tagihan "${billMeta.title}" berhasil dimuat.`, 'success');
-      } catch (err) {
-        console.error(err);
-        showToast('Gagal memuat detail tagihan dari Supabase.', 'error');
+        showToast(`Tagihan "${billMeta.title}" dimuat dari penyimpanan lokal.`, 'success');
+      } catch (e) {
+        console.error(e);
+        showToast('Gagal mengurai detail tagihan lokal.', 'error');
       }
     } else {
-      // Load dari LocalStorage detail
-      const detailsLocal = localStorage.getItem(`splitbill_pro_details_${id}`);
-      if (detailsLocal) {
-        try {
-          const details = JSON.parse(detailsLocal);
-          setBillId(id);
-          setBillTitle(billMeta.title);
-          setBillDate(billMeta.bill_date || new Date().toISOString().split('T')[0]);
-          setTaxInputType('nominal');
-          setTaxInputValue(billMeta.total_tax);
-          setTotalTax(billMeta.total_tax);
-          setMembers(details.members || []);
-          setItems(details.items || []);
-          setSelectedBillId(id);
-          showToast(`Tagihan "${billMeta.title}" dimuat dari penyimpanan lokal.`, 'success');
-        } catch (e) {
-          console.error(e);
-          showToast('Gagal mengurai detail tagihan lokal.', 'error');
-        }
-      } else {
-        showToast('Detail tagihan lokal tidak ditemukan.', 'error');
-      }
+      showToast('Detail tagihan lokal tidak ditemukan.', 'error');
     }
     setIsLoading(false);
   };
@@ -221,85 +162,27 @@ function App() {
 
     setIsSaving(true);
 
-    if (dbConnected) {
-      try {
-        // 1. Simpan/Upsert Bill Utama
-        const { error: billError } = await supabase
-          .from('bills')
-          .upsert({
-            id: billId,
-            title: billTitle,
-            total_amount: grandTotal,
-            total_tax: totalTax,
-            bill_date: billDate
-          });
+    // Simpan di LocalStorage
+    const newBillMeta: Bill = {
+      id: billId,
+      title: billTitle,
+      total_amount: grandTotal,
+      total_tax: totalTax,
+      bill_date: billDate,
+      created_at: new Date().toISOString()
+    };
 
-        if (billError) throw billError;
+    const updatedBills = [...savedBills.filter(b => b.id !== billId), newBillMeta];
+    localStorage.setItem('splitbill_pro_bills', JSON.stringify(updatedBills));
+    localStorage.setItem(
+      `splitbill_pro_details_${billId}`, 
+      JSON.stringify({ members, items })
+    );
 
-        // 2. Untuk mempermudah, hapus item & member lama pada tagihan ini
-        // (Cascading delete akan otomatis menghapus ketergantungan jika diatur di DB)
-        // Hapus manual untuk memastikan integritas
-        await supabase.from('bill_items').delete().eq('bill_id', billId);
-        await supabase.from('members').delete().eq('bill_id', billId);
-
-        // 3. Masukkan Members baru
-        const taxShare = calculateTaxShare(totalTax, members.length);
-        if (members.length > 0) {
-          const membersToInsert = members.map(m => ({
-            id: m.id,
-            bill_id: billId,
-            name: m.name,
-            tax_share: taxShare
-          }));
-          const { error: memError } = await supabase.from('members').insert(membersToInsert);
-          if (memError) throw memError;
-        }
-
-        // 4. Masukkan Items baru
-        if (items.length > 0) {
-          const itemsToInsert = items.map(item => ({
-            id: item.id,
-            bill_id: billId,
-            item_name: item.item_name,
-            price: item.price,
-            assigned_to_member_id: item.assigned_to_member_id
-          }));
-          const { error: itemError } = await supabase.from('bill_items').insert(itemsToInsert);
-          if (itemError) throw itemError;
-        }
-
-        showToast('Tagihan berhasil disimpan ke Supabase Database!', 'success');
-        setSelectedBillId(billId);
-        loadSavedBills(true);
-      } catch (err: any) {
-        console.error('Error saving to Supabase:', err);
-        showToast(`Gagal menyimpan ke database: ${err.message || err}`, 'error');
-      } finally {
-        setIsSaving(false);
-      }
-    } else {
-      // Simpan di LocalStorage
-      const newBillMeta: Bill = {
-        id: billId,
-        title: billTitle,
-        total_amount: grandTotal,
-        total_tax: totalTax,
-        bill_date: billDate,
-        created_at: new Date().toISOString()
-      };
-
-      const updatedBills = [...savedBills.filter(b => b.id !== billId), newBillMeta];
-      localStorage.setItem('splitbill_pro_bills', JSON.stringify(updatedBills));
-      localStorage.setItem(
-        `splitbill_pro_details_${billId}`, 
-        JSON.stringify({ members, items })
-      );
-
-      setSavedBills(updatedBills);
-      setSelectedBillId(billId);
-      showToast('Tagihan disimpan secara lokal di browser ini.', 'success');
-      setIsSaving(false);
-    }
+    setSavedBills(updatedBills);
+    setSelectedBillId(billId);
+    showToast('Tagihan disimpan secara lokal di browser ini.', 'success');
+    setIsSaving(false);
   };
 
   // Hapus Tagihan
@@ -309,30 +192,13 @@ function App() {
     if (!window.confirm('Apakah Anda yakin ingin menghapus tagihan ini?')) return;
 
     setIsLoading(true);
-    if (dbConnected) {
-      try {
-        const { error } = await supabase
-          .from('bills')
-          .delete()
-          .eq('id', id);
-
-        if (error) throw error;
-        showToast('Tagihan berhasil dihapus dari database.', 'success');
-        if (billId === id) initNewBill();
-        loadSavedBills(true);
-      } catch (err) {
-        console.error(err);
-        showToast('Gagal menghapus tagihan dari database.', 'error');
-      }
-    } else {
-      // Hapus dari local storage
-      const updated = savedBills.filter(b => b.id !== id);
-      localStorage.setItem('splitbill_pro_bills', JSON.stringify(updated));
-      localStorage.removeItem(`splitbill_pro_details_${id}`);
-      setSavedBills(updated);
-      showToast('Tagihan lokal berhasil dihapus.', 'success');
-      if (billId === id) initNewBill();
-    }
+    // Hapus dari local storage
+    const updated = savedBills.filter(b => b.id !== id);
+    localStorage.setItem('splitbill_pro_bills', JSON.stringify(updated));
+    localStorage.removeItem(`splitbill_pro_details_${id}`);
+    setSavedBills(updated);
+    showToast('Tagihan lokal berhasil dihapus.', 'success');
+    if (billId === id) initNewBill();
     setIsLoading(false);
   };
 
@@ -436,13 +302,9 @@ function App() {
 
         {/* Database Status Indicator */}
         <div className="flex items-center gap-3">
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold ${
-            dbConnected 
-              ? 'bg-emerald-950/50 border-emerald-500/30 text-emerald-400' 
-              : 'bg-slate-900 border-slate-800 text-slate-400'
-          }`}>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold bg-slate-900 border-slate-800 text-slate-400">
             <Database size={13} />
-            <span>{dbConnected ? 'Database Supabase Terhubung' : 'Penyimpanan Lokal Aktif'}</span>
+            <span>Penyimpanan Lokal Aktif</span>
           </div>
 
           <button 
@@ -455,14 +317,51 @@ function App() {
         </div>
       </header>
 
+      {/* Quick Start Guide */}
+      <section className="max-w-7xl w-full mx-auto px-4 md:px-6 pb-4">
+        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-5 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-[0.24em] text-slate-500 font-semibold">Panduan Cepat</p>
+              <h2 className="mt-2 text-lg sm:text-xl font-bold text-slate-100">Cara menggunakan SplitBill Pro</h2>
+            </div>
+            <div className="rounded-2xl bg-slate-950/40 border border-slate-800 px-4 py-3 text-xs text-slate-400">
+              Isi langkahnya secara berurutan agar hasil pembagian lebih jelas.
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mt-5 text-sm">
+            <div className="rounded-2xl border border-slate-800 p-4 bg-slate-950/70">
+              <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold">1. Tambah Anggota</p>
+              <p className="mt-2 text-slate-300 text-sm">Masukkan nama semua orang yang ikut membayar.</p>
+            </div>
+            <div className="rounded-2xl border border-slate-800 p-4 bg-slate-950/70">
+              <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold">2. Tambah Item</p>
+              <p className="mt-2 text-slate-300 text-sm">Isi barang belanja dan pilih siapa yang membayar setiap item.</p>
+            </div>
+            <div className="rounded-2xl border border-slate-800 p-4 bg-slate-950/70">
+              <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold">3. Atur Pajak</p>
+              <p className="mt-2 text-slate-300 text-sm">Masukkan pajak/service charge, langsung dibagi rata ke anggota.</p>
+            </div>
+            <div className="rounded-2xl border border-slate-800 p-4 bg-slate-950/70">
+              <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold">4. Simpan & Review</p>
+              <p className="mt-2 text-slate-300 text-sm">Simpan tagihan, kemudian lihat ringkasan dan cetak jika perlu.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Main Layout Container */}
       <main className="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
         
         {/* Panel Kiri: Saved Bills List (1/4 Width) */}
         <section className="no-print lg:col-span-1 bg-slate-900/40 rounded-2xl p-5 border border-slate-800/80 self-start">
-          <div className="flex items-center space-x-2.5 mb-4 pb-2 border-b border-slate-800/60">
-            <FolderOpen className="text-indigo-400" size={18} />
-            <h2 className="text-sm font-bold text-slate-300 uppercase tracking-wider">Tagihan Tersimpan ({savedBills.length})</h2>
+          <div className="flex flex-col gap-3 mb-4 pb-2 border-b border-slate-800/60">
+            <div className="flex items-center space-x-2.5">
+              <FolderOpen className="text-indigo-400" size={18} />
+              <h2 className="text-sm font-bold text-slate-300 uppercase tracking-wider">Tagihan Tersimpan ({savedBills.length})</h2>
+            </div>
+            <p className="text-[11px] text-slate-500">Pilih tagihan untuk melihat detail. Klik ikon sampah untuk menghapus.</p>
           </div>
 
           {/* List Saved Bills */}
@@ -513,15 +412,13 @@ function App() {
           </div>
 
           {/* Mode Warning Alert */}
-          {!dbConnected && (
-            <div className="mt-4 p-3 bg-amber-500/5 border border-amber-500/20 text-amber-400/90 rounded-xl flex items-start gap-2.5 text-[10px] leading-relaxed">
-              <AlertTriangle size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <strong className="font-semibold block mb-0.5">Mode Sandbox Lokal</strong>
-                Data disimpan di browser Anda. Hubungkan Supabase di file `.env.local` untuk menyimpan online.
-              </div>
+          <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/20 text-emerald-400/90 rounded-xl flex items-start gap-2.5 text-[10px] leading-relaxed">
+            <AlertTriangle size={16} className="text-emerald-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <strong className="font-semibold block mb-0.5">Penyimpanan Lokal Aktif</strong>
+              Data tagihan disimpan di browser ini dan hanya tersedia di perangkat yang sama.
             </div>
-          )}
+          </div>
         </section>
 
         {/* Panel Kanan: Bill Form & Calculators (3/4 Width) */}
