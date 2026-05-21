@@ -603,7 +603,7 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
                     <Wallet size={20} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg text-slate-100">Langkah 2: Informasi Pembayaran</h3>
+                    <h3 className="font-semibold text-lg text-slate-100">Informasi Pembayaran</h3>
                     <p className="text-xs text-slate-400">Tentukan siapa yang membayar tagihan & metode transfernya.</p>
                   </div>
                 </div>
@@ -665,7 +665,7 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
                     <CheckCircle size={20} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg text-slate-100">Langkah 5: Pajak & Biaya Tambahan</h3>
+                    <h3 className="font-semibold text-lg text-slate-100">Pajak & Biaya Tambahan</h3>
                     <p className="text-xs text-slate-400">Masukkan nilai pajak atau service charge tambahan jika ada.</p>
                   </div>
                 </div>
