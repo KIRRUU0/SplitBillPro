@@ -664,12 +664,14 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
                 onAssignItem={handleAssignItem}
               />
 
-              <PaymentSummary 
-                members={members}
-                items={items}
-                totalTax={totalTax}
-                billTitle={billTitle}
-              />
+              <div className="print-only">
+                <PaymentSummary 
+                  members={members}
+                  items={items}
+                  totalTax={totalTax}
+                  billTitle={billTitle}
+                />
+              </div>
             </div>
 
           </div>

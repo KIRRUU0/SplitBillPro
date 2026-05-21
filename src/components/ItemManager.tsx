@@ -174,14 +174,22 @@ export const ItemManager: React.FC<ItemManagerProps> = ({
                             )}
                           </div>
 
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                          <div className="flex flex-col gap-2">
                             <select
                               value={selectedValue}
-                              onChange={(e) => setSelectedMemberToAdd((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                              onChange={(e) => {
+                                const memberId = e.target.value;
+                                if (!memberId) {
+                                  setSelectedMemberToAdd((prev) => ({ ...prev, [item.id]: '' }));
+                                  return;
+                                }
+                                onAssignItem(item.id, [...assignedMemberIds, memberId]);
+                                setSelectedMemberToAdd((prev) => ({ ...prev, [item.id]: '' }));
+                              }}
                               disabled={members.length === 0 || availableMembers.length === 0}
-                              className="w-full min-w-[180px] sm:max-w-[240px] bg-slate-800 border border-slate-700 rounded-2xl py-3 px-3 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed"
+                              className="w-full min-w-[180px] bg-slate-800 border border-slate-700 rounded-2xl py-3 px-3 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed"
                             >
-                              <option value="">Pilih anggota untuk item</option>
+                              <option value="">Pilih anggota</option>
                               {availableMembers.map((member) => (
                                 <option key={member.id} value={member.id}>
                                   {member.name}
@@ -197,10 +205,14 @@ export const ItemManager: React.FC<ItemManagerProps> = ({
                                 setSelectedMemberToAdd((prev) => ({ ...prev, [item.id]: '' }));
                               }}
                               disabled={!selectedValue || availableMembers.length === 0}
-                              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 text-white px-4 py-3 text-sm font-semibold hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                              className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 text-white px-4 py-3 text-sm font-semibold hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                             >
-                              <Plus size={16} /> Tambah
+                              <Plus size={16} /> Tambah Anggota
                             </button>
+
+                            <p className="text-[10px] text-slate-500">
+                              Pilih anggota untuk langsung ditambahkan ke item.
+                            </p>
                           </div>
 
                           {availableMembers.length === 0 && members.length > 0 && (
