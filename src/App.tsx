@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Plus, 
   Save, 
@@ -11,8 +11,6 @@ import {
   CheckCircle,
   FileText,
   CalendarDays,
-  Download,
-  Upload,
   RefreshCcw
 } from 'lucide-react';
 import type { Member, BillItem, Bill } from './types';
@@ -53,11 +51,9 @@ function App() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
   const [showTutorial, setShowTutorial] = useState<boolean>(false);
   const [tutorialStep, setTutorialStep] = useState<number>(0);
-  const importFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const LOCAL_STORAGE_BILLS_KEY = 'splitbill_pro_bills';
   const LOCAL_STORAGE_DETAILS_PREFIX = 'splitbill_pro_details_';
-  const LOCAL_STORAGE_TUTORIAL_KEY = 'splitbill_pro_seen_tutorial';
 
   const tutorialSteps = [
     {
@@ -76,9 +72,9 @@ function App() {
       tip: 'Pilih mode Nominal atau Persentase sesuai jenis biaya tambahan yang Anda miliki.'
     },
     {
-      title: 'Simpan & Ekspor',
-      description: 'Simpan tagihan untuk disimpan secara lokal atau ekspor ke JSON sebagai cadangan.',
-      tip: 'Gunakan tombol Ekspor untuk menyimpan salinan file di perangkat Anda.'
+      title: 'Simpan & Review',
+      description: 'Simpan tagihan di browser ini dan lihat ringkasan per-orang sebelum mencetak.',
+      tip: 'Gunakan tombol Simpan lalu cek ringkasan untuk memastikan semua sudah benar.'
     }
   ];
 
@@ -88,12 +84,6 @@ function App() {
     
     // Load daftar tagihan tersimpan dari localStorage
     loadSavedBills();
-
-    // Tampilkan tutorial popup sekali saja
-    const seenTutorial = localStorage.getItem(LOCAL_STORAGE_TUTORIAL_KEY) === 'true';
-    if (!seenTutorial) {
-      setShowTutorial(true);
-    }
   }, []);
 
   // Update totalTax jika taxInputValue atau item price berubah
@@ -120,7 +110,6 @@ function App() {
   };
 
   const handleCloseTutorial = () => {
-    localStorage.setItem(LOCAL_STORAGE_TUTORIAL_KEY, 'true');
     setShowTutorial(false);
     setTutorialStep(0);
   };
@@ -136,152 +125,6 @@ function App() {
 
   const handlePreviousTutorialStep = () => {
     setTutorialStep((prev) => Math.max(prev - 1, 0));
-  };
-
-  const downloadJSON = (filename: string, data: unknown) => {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = filename;
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleExportCurrentBill = () => {
-    if (!billTitle.trim()) {
-      showToast('Masukkan judul tagihan sebelum ekspor.', 'warning');
-      return;
-    }
-
-    const subtotal = items.reduce((acc, curr) => acc + curr.price, 0);
-    const payload = {
-      bill: {
-        id: billId,
-        title: billTitle,
-        total_amount: subtotal + totalTax,
-        total_tax: totalTax,
-        bill_date: billDate,
-        created_at: new Date().toISOString()
-      },
-      members,
-      items
-    };
-
-    downloadJSON(
-      `splitbill-${billTitle.replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase() || 'tagihan'}-${new Date().toISOString().slice(0, 10)}.json`,
-      payload
-    );
-  };
-
-  const handleExportAllBills = () => {
-    if (savedBills.length === 0) {
-      showToast('Tidak ada tagihan tersimpan untuk diekspor.', 'warning');
-      return;
-    }
-
-    const details: Record<string, { members: Member[]; items: BillItem[] }> = {};
-    savedBills.forEach((bill) => {
-      const stored = localStorage.getItem(`${LOCAL_STORAGE_DETAILS_PREFIX}${bill.id}`);
-      if (stored) {
-        try {
-          details[bill.id] = JSON.parse(stored);
-        } catch {
-          details[bill.id] = { members: [], items: [] };
-        }
-      } else {
-        details[bill.id] = { members: [], items: [] };
-      }
-    });
-
-    downloadJSON(`splitbill-all-bills-${new Date().toISOString().slice(0, 10)}.json`, {
-      bills: savedBills,
-      details
-    });
-  };
-
-  const handleOpenImportDialog = () => {
-    importFileInputRef.current?.click();
-  };
-
-  const handleImportBillFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const text = String(reader.result || '');
-        const json = JSON.parse(text);
-
-        let importedBills: Bill[] = [];
-        let importedDetails: Record<string, { members: Member[]; items: BillItem[] }> = {};
-
-        if (Array.isArray(json.bills) && typeof json.details === 'object') {
-          importedBills = json.bills;
-          importedDetails = json.details;
-        } else if (json.bill && Array.isArray(json.members) && Array.isArray(json.items)) {
-          importedBills = [json.bill];
-          importedDetails = { [json.bill.id]: { members: json.members, items: json.items } };
-        } else {
-          throw new Error('Format file tidak valid. Pastikan file adalah ekspor SplitBill Pro.');
-        }
-
-        const existingBillIds = new Set(savedBills.map((bill) => bill.id));
-        const existingMemberIds = new Set<string>();
-        const existingItemIds = new Set<string>();
-        savedBills.forEach((bill) => {
-          const stored = localStorage.getItem(`${LOCAL_STORAGE_DETAILS_PREFIX}${bill.id}`);
-          if (stored) {
-            try {
-              const details = JSON.parse(stored);
-              details.members?.forEach((member: Member) => existingMemberIds.add(member.id));
-              details.items?.forEach((item: BillItem) => existingItemIds.add(item.id));
-            } catch {
-              // ignore invalid detail items
-            }
-          }
-        });
-
-        const newSavedBills = [...savedBills];
-
-        importedBills.forEach((incomingBill) => {
-          const originalId = incomingBill.id;
-          const duplicate = existingBillIds.has(incomingBill.id);
-          const targetId = duplicate ? generateUUID() : incomingBill.id;
-          if (duplicate) {
-            incomingBill = { ...incomingBill, id: targetId, title: `${incomingBill.title} (copy)` };
-          }
-
-          const details = importedDetails[originalId] || { members: [], items: [] };
-          const importedMembers = details.members.map((member) => {
-            const updatedId = existingMemberIds.has(member.id) ? generateUUID() : member.id;
-            existingMemberIds.add(updatedId);
-            return { ...member, id: updatedId, bill_id: targetId };
-          });
-          const importedItems = details.items.map((item) => {
-            const updatedId = existingItemIds.has(item.id) ? generateUUID() : item.id;
-            existingItemIds.add(updatedId);
-            return { ...item, id: updatedId, bill_id: targetId };
-          });
-
-          newSavedBills.push({ ...incomingBill, id: targetId });
-          localStorage.setItem(`${LOCAL_STORAGE_DETAILS_PREFIX}${targetId}`, JSON.stringify({ members: importedMembers, items: importedItems }));
-          existingBillIds.add(targetId);
-        });
-
-        localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(newSavedBills));
-        setSavedBills(newSavedBills);
-        showToast('Data tagihan berhasil diimpor.', 'success');
-      } catch (error: any) {
-        console.error(error);
-        showToast(error?.message || 'Gagal mengimpor data. Periksa format file JSON.', 'error');
-      }
-    };
-    reader.readAsText(file);
-    if (e.target) e.target.value = '';
   };
 
   const handleResetAllData = () => {
@@ -713,36 +556,6 @@ localStorage.setItem(LOCAL_STORAGE_BILLS_KEY, JSON.stringify(updatedBills));
                   <span>Simpan Tagihan</span>
                 </button>
 
-                <div className="flex flex-wrap gap-2 justify-end">
-                  <button
-                    onClick={handleExportCurrentBill}
-                    className="px-4 py-2 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-all flex items-center gap-2"
-                    type="button"
-                  >
-                    <Download size={14} /> Ekspor Tagihan
-                  </button>
-                  <button
-                    onClick={handleExportAllBills}
-                    className="px-4 py-2 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-all flex items-center gap-2"
-                    type="button"
-                  >
-                    <Download size={14} /> Ekspor Semua
-                  </button>
-                  <button
-                    onClick={handleOpenImportDialog}
-                    className="px-4 py-2 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-all flex items-center gap-2"
-                    type="button"
-                  >
-                    <Upload size={14} /> Impor
-                  </button>
-                </div>
-                <input
-                  ref={importFileInputRef}
-                  type="file"
-                  accept="application/json"
-                  onChange={handleImportBillFile}
-                  className="hidden"
-                />
               </div>
             </div>
 

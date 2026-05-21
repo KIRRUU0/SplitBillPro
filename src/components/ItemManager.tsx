@@ -58,7 +58,7 @@ export const ItemManager: React.FC<ItemManagerProps> = ({
           </div>
           <div>
             <h3 className="font-semibold text-lg text-slate-100">Langkah 2: Tambah & Alokasikan Item ({items.length})</h3>
-            <p className="text-xs text-slate-400">Tambahkan barang dan pilih siapa yang bertanggung jawab membayarnya.</p>
+            <p className="text-xs text-slate-400">Tambahkan barang dan pilih satu atau lebih anggota untuk berbagi biaya item.</p>
           </div>
         </div>
       </div>
@@ -124,7 +124,7 @@ export const ItemManager: React.FC<ItemManagerProps> = ({
             <tr className="bg-slate-900/60 text-slate-400 uppercase font-semibold border-b border-slate-700/50">
               <th className="py-3 px-4">Nama Barang</th>
               <th className="py-3 px-4 w-1/4">Harga</th>
-              <th className="py-3 px-4 w-1/3">Dialokasikan Ke</th>
+              <th className="py-3 px-4 w-1/3">Pilih Pembayar</th>
               <th className="py-3 px-4 w-10 text-center">Aksi</th>
             </tr>
           </thead>
@@ -162,7 +162,7 @@ export const ItemManager: React.FC<ItemManagerProps> = ({
                         ))
                       )}
                     </select>
-                    <p className="mt-1 text-[10px] text-slate-500">Gunakan Ctrl/Cmd atau Shift untuk memilih lebih dari satu.</p>
+                    <p className="mt-1 text-[10px] text-slate-500">Pilih satu atau lebih anggota agar harga item dibagi otomatis ketika dibagi bersama.</p>
                     {item.assigned_to_member_ids && item.assigned_to_member_ids.length > 0 && (
                       <p className="mt-1 text-[10px] text-slate-400">
                         Dialokasikan ke: {members.filter((member) => item.assigned_to_member_ids.includes(member.id)).map((member) => member.name).join(', ')}
